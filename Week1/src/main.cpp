@@ -29,14 +29,15 @@ void main()                                                                     
 
 // Fragment Shader
 // Note: no input in this shader, it just outputs the colour of all fragments, in this case set to red (format: R, G, B, A).
-static const char* pFS = "                                              \n\
-#version 330                                                            \n\
-                                                                        \n\
-out vec4 FragColor;                                                      \n\
-                                                                          \n\
-void main()                                                               \n\
-{                                                                          \n\
-FragColor = vec4(1.0, 0.0, 0.0, 1.0);									 \n\
+static const char* pFS = "													\n\
+#version 330																\n\
+																			\n\
+in vec4 color;																\n\
+out vec4 FragColor;															\n\
+																			\n\
+void main()																	\n\
+{																			\n\
+FragColor = vec4(color.r, color.g, color.b, color.a);						\n\
 }";
 
 
