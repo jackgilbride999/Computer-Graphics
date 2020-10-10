@@ -41,6 +41,12 @@ FragColor = vec4(color.r, color.g, color.b, color.a);						\n\
 }";
 
 
+GLuint VBO1;
+GLuint VBO2;
+
+GLuint ShaderProgram1;
+GLuint ShaderProgram2;
+
 // Shader Functions- click on + to expand
 #pragma region SHADER_FUNCTIONS
 static void AddShader(GLuint ShaderProgram, const char* pShaderText, GLenum ShaderType)
@@ -115,10 +121,10 @@ GLuint CompileShaders()
 
 // VBO Functions - click on + to expand
 #pragma region VBO_FUNCTIONS
-GLuint generateObjectBuffer(GLfloat vertices[], GLfloat colors[]) {
+GLuint generateObjectBuffer(GLuint VBO, GLfloat vertices[], GLfloat colors[]) {
 	GLuint numVertices = 3;
 	// Genderate 1 generic buffer object, called VBO
-	GLuint VBO;
+	//GLuint VBO;
  	glGenBuffers(1, &VBO);
 	// In OpenGL, we bind (make active) the handle to a target name and then execute commands on that target
 	// Buffer will contain an array of vertices 
@@ -151,6 +157,13 @@ void display(){
 
 	glClear(GL_COLOR_BUFFER_BIT);
 	// NB: Make the call to draw the geometry in the currently activated vertex buffer. This is where the GPU starts to work!
+	glUseProgram(ShaderProgram1);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO1);
+	linkCurrentBuffertoShader(ShaderProgram1);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+	glUseProgram(ShaderProgram2);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO2);
+	linkCurrentBuffertoShader(ShaderProgram2);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
     glutSwapBuffers();
 }
@@ -159,19 +172,27 @@ void display(){
 void init()
 {
 	// Create 3 vertices that make up a triangle that fits on the viewport 
-	GLfloat vertices[] = {-1.0f, -1.0f, 0.0f,
-			1.0f, -1.0f, 0.0f,
-			0.0f, 1.0f, 0.0f};
+	GLfloat vertices[] = {-0.8f, 0.8f, 0.0f,
+			-0.1f, 0.2f, 0.0f,
+			-0.6f, -0.6f, 0.0f};
+
+	GLfloat vertices2[] = {
+		0.7f, 0.5f, 0.0f,
+		0.3f, -0.5f, 0.0f,
+		0.8f, -0.8f, 0.0f
+	};
+
 	// Create a color array that identfies the colors of each vertex (format R, G, B, A)
 	GLfloat colors[] = {0.0f, 1.0f, 0.0f, 1.0f,
 			1.0f, 0.0f, 0.0f, 1.0f,
 			0.0f, 0.0f, 1.0f, 1.0f};
 	// Set up the shaders
-	GLuint shaderProgramID = CompileShaders();
+	ShaderProgram1 = CompileShaders();
 	// Put the vertices and colors into a vertex buffer object
-	generateObjectBuffer(vertices, colors);
-	// Link the current buffer to the shader
-	linkCurrentBuffertoShader(shaderProgramID);	
+	VBO1 = generateObjectBuffer(VBO1,vertices, colors);
+
+	ShaderProgram2 = CompileShaders();
+	VBO2 = generateObjectBuffer(VBO2, vertices2, colors);
 }
 
 int main(int argc, char** argv){
