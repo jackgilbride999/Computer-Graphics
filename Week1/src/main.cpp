@@ -186,13 +186,18 @@ void init()
 	GLfloat colors[] = {0.0f, 1.0f, 0.0f, 1.0f,
 			1.0f, 0.0f, 0.0f, 1.0f,
 			0.0f, 0.0f, 1.0f, 1.0f};
+
+	GLfloat colors2[] = { 1.0f, 1.0f, 0.0f, 1.0f,
+		1.0f, 1.0f, 0.0f, 1.0f,
+		1.0f, 1.0f, 0.0f, 1.0f };
+
 	// Set up the shaders
 	ShaderProgram1 = CompileShaders();
 	// Put the vertices and colors into a vertex buffer object
 	VBO1 = generateObjectBuffer(VBO1,vertices, colors);
 
 	ShaderProgram2 = CompileShaders();
-	VBO2 = generateObjectBuffer(VBO2, vertices2, colors);
+	VBO2 = generateObjectBuffer(VBO2, vertices2, colors2);
 }
 
 int main(int argc, char** argv){
