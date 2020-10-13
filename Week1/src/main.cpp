@@ -40,6 +40,8 @@ void main()																	\n\
 FragColor = vec4(color.r, color.g, color.b, color.a);						\n\
 }";
 
+GLuint VAO1;
+GLuint VAO2;
 
 GLuint VBO1;
 GLuint VBO2;
@@ -142,6 +144,7 @@ void linkCurrentBuffertoShader(GLuint shaderProgramID){
 	// find the location of the variables that we will be using in the shader program
 	GLuint positionID = glGetAttribLocation(shaderProgramID, "vPosition");
 	GLuint colorID = glGetAttribLocation(shaderProgramID, "vColor");
+	std::cout << "Position ID is " << positionID << std::endl;
 	// Have to enable this
 	glEnableVertexAttribArray(positionID);
 	// Tell it where to find the position data in the currently active buffer (at index positionID)
@@ -156,15 +159,20 @@ void linkCurrentBuffertoShader(GLuint shaderProgramID){
 void display(){
 
 	glClear(GL_COLOR_BUFFER_BIT);
+
 	// NB: Make the call to draw the geometry in the currently activated vertex buffer. This is where the GPU starts to work!
 	glUseProgram(ShaderProgram1);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO1);
-	linkCurrentBuffertoShader(ShaderProgram1);
+	glBindVertexArray(VAO1);
+	//glBindBuffer(GL_ARRAY_BUFFER, VBO1);
+	//linkCurrentBuffertoShader(ShaderProgram1);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
+
 	glUseProgram(ShaderProgram2);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-	linkCurrentBuffertoShader(ShaderProgram2);
+	//glBindBuffer(GL_ARRAY_BUFFER, VBO2);
+	//linkCurrentBuffertoShader(ShaderProgram2);
+	glBindVertexArray(VAO2);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
+
     glutSwapBuffers();
 }
 
@@ -191,13 +199,18 @@ void init()
 		1.0f, 1.0f, 0.0f, 1.0f,
 		1.0f, 1.0f, 0.0f, 1.0f };
 
-	// Set up the shaders
+	glGenVertexArrays(1, &VAO1);
+	glBindVertexArray(VAO1);
 	ShaderProgram1 = CompileShaders();
-	// Put the vertices and colors into a vertex buffer object
 	VBO1 = generateObjectBuffer(VBO1,vertices, colors);
+	linkCurrentBuffertoShader(ShaderProgram1);
 
+	glGenVertexArrays(1, &VAO2);
+	glBindVertexArray(VAO2);
 	ShaderProgram2 = CompileShaders();
 	VBO2 = generateObjectBuffer(VBO2, vertices2, colors2);
+	linkCurrentBuffertoShader(ShaderProgram2);
+
 }
 
 int main(int argc, char** argv){
