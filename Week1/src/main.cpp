@@ -1,4 +1,3 @@
-
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <iostream>
@@ -125,8 +124,7 @@ GLuint CompileShaders()
 #pragma region VBO_FUNCTIONS
 GLuint generateObjectBuffer(GLuint VBO, GLfloat vertices[], GLfloat colors[]) {
 	GLuint numVertices = 3;
-	// Genderate 1 generic buffer object, called VBO
-	//GLuint VBO;
+	// Genderate 1 generic buffer object, called VBO;
  	glGenBuffers(1, &VBO);
 	// In OpenGL, we bind (make active) the handle to a target name and then execute commands on that target
 	// Buffer will contain an array of vertices 
@@ -144,7 +142,7 @@ void linkCurrentBuffertoShader(GLuint shaderProgramID){
 	// find the location of the variables that we will be using in the shader program
 	GLuint positionID = glGetAttribLocation(shaderProgramID, "vPosition");
 	GLuint colorID = glGetAttribLocation(shaderProgramID, "vColor");
-	std::cout << "Position ID is " << positionID << std::endl;
+
 	// Have to enable this
 	glEnableVertexAttribArray(positionID);
 	// Tell it where to find the position data in the currently active buffer (at index positionID)
@@ -157,19 +155,14 @@ void linkCurrentBuffertoShader(GLuint shaderProgramID){
 
 
 void display(){
-
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	// NB: Make the call to draw the geometry in the currently activated vertex buffer. This is where the GPU starts to work!
+	// This is where the GPU starts to work!
 	glUseProgram(ShaderProgram1);
 	glBindVertexArray(VAO1);
-	//glBindBuffer(GL_ARRAY_BUFFER, VBO1);
-	//linkCurrentBuffertoShader(ShaderProgram1);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 
 	glUseProgram(ShaderProgram2);
-	//glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-	//linkCurrentBuffertoShader(ShaderProgram2);
 	glBindVertexArray(VAO2);
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 
