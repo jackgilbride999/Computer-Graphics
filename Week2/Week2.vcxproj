@@ -88,7 +88,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\jackg\College\Computer-Graphics\Week2\libs\glew-1.10.0\include;C:\Users\jackg\College\Computer-Graphics\Week2\libs\freeglut\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\jackg\College\Computer-Graphics\Week2\libs\glm-0.9.9.7\glm;C:\Users\jackg\College\Computer-Graphics\Week2\libs\glew-1.10.0\include;C:\Users\jackg\College\Computer-Graphics\Week2\libs\freeglut\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -105,7 +105,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\jackg\College\Computer-Graphics\Week2\libs\glew-1.10.0\include;C:\Users\jackg\College\Computer-Graphics\Week2\libs\freeglut\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\jackg\College\Computer-Graphics\Week2\libs\glm-0.9.9.7\glm;C:\Users\jackg\College\Computer-Graphics\Week2\libs\glew-1.10.0\include;C:\Users\jackg\College\Computer-Graphics\Week2\libs\freeglut\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
