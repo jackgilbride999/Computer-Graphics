@@ -338,6 +338,21 @@ void init()
 
 // Placeholder code for the keypress
 void keypress(unsigned char key, int x, int y) {
+	switch (key) {
+	case 'w':
+		printf("w");
+		break;
+	case 'a':
+		printf("a");
+		break;
+	case 's':
+		printf("s");
+		break;
+	case 'd':
+		printf("d");
+		break;
+
+	}
 	if (key == 'x') {
 		//Translate the base, etc.
 	}
