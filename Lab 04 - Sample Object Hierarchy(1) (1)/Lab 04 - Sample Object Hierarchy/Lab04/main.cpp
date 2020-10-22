@@ -52,6 +52,9 @@ GLuint loc1, loc2, loc3;
 GLfloat rotate_x = 0.0f;
 GLfloat rotate_y = 0.0f;
 GLfloat rotate_z = 0.0f;
+GLfloat translate_x = 0.0f;
+GLfloat translate_y = 0.0f;
+GLfloat translate_z = 0.0f;
 
 mat4 view;
 mat4 persp_proj;
@@ -291,7 +294,10 @@ void display() {
 	model = rotate_x_deg(model, rotate_x);
 	model = rotate_y_deg(model, rotate_y);
 	model = rotate_z_deg(model, rotate_z);
+	model = translate(model, vec3(translate_x, translate_y, translate_z));
+
 	view = translate(view, vec3(0.0, 0.0, -10.0f));
+
 
 	// update uniforms & draw
 	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
@@ -349,33 +355,74 @@ void init()
 
 // Placeholder code for the keypress
 void keypress(unsigned char key, int x, int y) {
+	GLfloat rotate_increment = 10.0f;
+	GLfloat translate_increment = 0.5f;
 	switch (key) {
 	case '1':
-		printf("Rotate around x-axis\n");
-		rotate_x += 10.0f;
+		printf("Rotate around x-axis ");
+		rotate_x += rotate_increment;
 		rotate_x = fmodf(rotate_x, 360.0f);
-		printf("%f", rotate_x);
+		printf("%f\n", rotate_x);
+		break;
+	case '!':
+		printf("Rotate backwards around x-axis ");
+		rotate_x -= rotate_increment;
+		rotate_x = fmodf(rotate_x, 360.0f);
+		printf("%f\n", rotate_x);
 		break;
 	case '2':
-		printf("Rotate around y-axis\n");
-		rotate_y += 10.0f;
+		printf("Rotate around y-axis ");
+		rotate_y += rotate_increment;
 		rotate_y = fmodf(rotate_y, 360.0f);
-		printf("%f", rotate_y);
+		printf("%f\n", rotate_y);
+		break;
+	case '"':
+		printf("Rotate backwards around y-axis ");
+		rotate_y -= rotate_increment;
+		rotate_y = fmodf(rotate_y, 360.0f);
+		printf("%f\n", rotate_y);
 		break;
 	case '3':
-		printf("Rotate around z-axis\n");
-		rotate_z += 10.0f;
+		printf("Rotate around z-axis ");
+		rotate_z += rotate_increment;
 		rotate_z = fmodf(rotate_z, 360.0f);
-		printf("%f", rotate_z);
+		printf("%f\n", rotate_z);
+		break;
+	case '£':
+		printf("Rotate backwards around z-axis ");
+		rotate_z -= rotate_increment;
+		rotate_z = fmodf(rotate_z, 360.0f);
+		printf("%f\n", rotate_z);
 		break;
 	case '4':
-		printf("Translate in the x-axis\n");
+		printf("Translate in the x-axis ");
+		translate_x += translate_increment;
+		printf("%f\n", translate_x);
+		break;
+	case '$':
+		printf("Translate backwards in the x-axis ");
+		translate_x -= translate_increment;
+		printf("%f\n", translate_x);
 		break;
 	case '5':
-		printf("Translate in the y-axis\n");
+		printf("Translate in the y-axis ");
+		translate_y += translate_increment;
+		printf("%f\n", translate_y);
+		break;
+	case '%':
+		printf("Translate backwards in the y-axis ");
+		translate_y -= translate_increment;
+		printf("%f\n", translate_y);
 		break;
 	case '6':
-		printf("Translate in the z-axis\n");
+		printf("Translate in the z-axis ");
+		translate_z += translate_increment;
+		printf("%f\n", translate_z);
+		break;
+	case '^':
+		printf("Translate backwards in the z-axis ");
+		translate_z -= translate_increment;
+		printf("%f\n", translate_z);
 		break;
 	case '7':
 		printf("Scale in the x-axis\n");
