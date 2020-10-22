@@ -339,19 +339,48 @@ void init()
 // Placeholder code for the keypress
 void keypress(unsigned char key, int x, int y) {
 	switch (key) {
+	case '1':
+		printf("Rotate around x-axis");
+		break;
+	case '2':
+		printf("Rotate around y-axis");
+		break;
+	case '3':
+		printf("Rotate around z-axis");
+		break;
+	case '4':
+		printf("Translate in the x-axis");
+		break;
+	case '5':
+		printf("Translate in the y-axis");
+		break;
+	case '6':
+		printf("Translate in the z-axis");
+		break;
+	case '7':
+		printf("Scale in the x-axis");
+		break;
+	case '8':
+		printf("Scale in the y-axis");
+		break;
+	case '9':
+		printf("Scale in the z-axis");
+		break;
+	case '0':
+		printf("Scale uniformly");
+		break;
 	case 'w':
-		printf("w");
+		printf("Move camera forward");
 		break;
 	case 'a':
-		printf("a");
+		printf("Turn camera left");
 		break;
 	case 's':
-		printf("s");
+		printf("Move camera backward");
 		break;
 	case 'd':
-		printf("d");
+		printf("Turn camera right");
 		break;
-
 	}
 	if (key == 'x') {
 		//Translate the base, etc.
