@@ -49,8 +49,13 @@ int width = 800;
 int height = 600;
 
 GLuint loc1, loc2, loc3;
+GLfloat rotate_x = 0.0f;
 GLfloat rotate_y = 0.0f;
+GLfloat rotate_z = 0.0f;
 
+mat4 view;
+mat4 persp_proj;
+mat4 model;
 
 #pragma region MESH LOADING
 /*----------------------------------------------------------------------------
@@ -280,10 +285,12 @@ void display() {
 
 
 	// Root of the Hierarchy
-	mat4 view = identity_mat4();
-	mat4 persp_proj = perspective(45.0f, (float)width / (float)height, 0.1f, 1000.0f);
-	mat4 model = identity_mat4();
-	model = rotate_z_deg(model, rotate_y);
+	view = identity_mat4();
+	persp_proj = perspective(45.0f, (float)width / (float)height, 0.1f, 1000.0f);
+	model = identity_mat4();
+	model = rotate_x_deg(model, rotate_x);
+	model = rotate_y_deg(model, rotate_y);
+	model = rotate_z_deg(model, rotate_z);
 	view = translate(view, vec3(0.0, 0.0, -10.0f));
 
 	// update uniforms & draw
@@ -292,10 +299,11 @@ void display() {
 	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, model.m);
 	glDrawArrays(GL_TRIANGLES, 0, mesh_data.mPointCount);
 
+	/*
 	// Set up the child matrix
 	mat4 modelChild = identity_mat4();
 	modelChild = rotate_z_deg(modelChild, 180);
-	modelChild = rotate_y_deg(modelChild, rotate_y);
+	modelChild = rotate_y_deg(modelChild, rotate_z);
 	modelChild = translate(modelChild, vec3(0.0f, 1.9f, 0.0f));
 
 	// Apply the root matrix to the child matrix
@@ -304,6 +312,7 @@ void display() {
 	// Update the appropriate uniform and draw the mesh again
 	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, modelChild.m);
 	glDrawArrays(GL_TRIANGLES, 0, mesh_data.mPointCount);
+	*/
 
 	glutSwapBuffers();
 }
@@ -319,8 +328,8 @@ void updateScene() {
 	last_time = curr_time;
 
 	// Rotate the model slowly around the y axis at 20 degrees per second
-	rotate_y += 20.0f * delta;
-	rotate_y = fmodf(rotate_y, 360.0f);
+	//rotate_z += 20.0f * delta;
+	//rotate_z = fmodf(rotate_z, 360.0f);
 
 	// Draw the next frame
 	glutPostRedisplay();
@@ -333,6 +342,8 @@ void init()
 	GLuint shaderProgramID = CompileShaders();
 	// load mesh into a vertex buffer array
 	generateObjectBufferMesh();
+	model = identity_mat4();
+
 
 }
 
@@ -340,46 +351,55 @@ void init()
 void keypress(unsigned char key, int x, int y) {
 	switch (key) {
 	case '1':
-		printf("Rotate around x-axis");
+		printf("Rotate around x-axis\n");
+		rotate_x += 10.0f;
+		rotate_x = fmodf(rotate_x, 360.0f);
+		printf("%f", rotate_x);
 		break;
 	case '2':
-		printf("Rotate around y-axis");
+		printf("Rotate around y-axis\n");
+		rotate_y += 10.0f;
+		rotate_y = fmodf(rotate_y, 360.0f);
+		printf("%f", rotate_y);
 		break;
 	case '3':
-		printf("Rotate around z-axis");
+		printf("Rotate around z-axis\n");
+		rotate_z += 10.0f;
+		rotate_z = fmodf(rotate_z, 360.0f);
+		printf("%f", rotate_z);
 		break;
 	case '4':
-		printf("Translate in the x-axis");
+		printf("Translate in the x-axis\n");
 		break;
 	case '5':
-		printf("Translate in the y-axis");
+		printf("Translate in the y-axis\n");
 		break;
 	case '6':
-		printf("Translate in the z-axis");
+		printf("Translate in the z-axis\n");
 		break;
 	case '7':
-		printf("Scale in the x-axis");
+		printf("Scale in the x-axis\n");
 		break;
 	case '8':
-		printf("Scale in the y-axis");
+		printf("Scale in the y-axis\n");
 		break;
 	case '9':
-		printf("Scale in the z-axis");
+		printf("Scale in the z-axis\n");
 		break;
 	case '0':
-		printf("Scale uniformly");
+		printf("Scale uniformly\n");
 		break;
 	case 'w':
-		printf("Move camera forward");
+		printf("Move camera forward\n");
 		break;
 	case 'a':
-		printf("Turn camera left");
+		printf("Turn camera left\n");
 		break;
 	case 's':
-		printf("Move camera backward");
+		printf("Move camera backward\n");
 		break;
 	case 'd':
-		printf("Turn camera right");
+		printf("Turn camera right\n");
 		break;
 	}
 	if (key == 'x') {
