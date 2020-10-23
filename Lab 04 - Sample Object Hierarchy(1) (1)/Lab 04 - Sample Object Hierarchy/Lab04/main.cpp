@@ -55,6 +55,9 @@ GLfloat rotate_z = 0.0f;
 GLfloat translate_x = 0.0f;
 GLfloat translate_y = 0.0f;
 GLfloat translate_z = 0.0f;
+GLfloat scale_x = 1.0f;
+GLfloat scale_y = 1.0f;
+GLfloat scale_z = 1.0f;
 
 mat4 view;
 mat4 persp_proj;
@@ -291,6 +294,7 @@ void display() {
 	view = identity_mat4();
 	persp_proj = perspective(45.0f, (float)width / (float)height, 0.1f, 1000.0f);
 	model = identity_mat4();
+	model = scale(model, vec3(scale_x, scale_y, scale_z));
 	model = rotate_x_deg(model, rotate_x);
 	model = rotate_y_deg(model, rotate_y);
 	model = rotate_z_deg(model, rotate_z);
@@ -357,6 +361,7 @@ void init()
 void keypress(unsigned char key, int x, int y) {
 	GLfloat rotate_increment = 10.0f;
 	GLfloat translate_increment = 0.5f;
+	GLfloat scale_increment = 2.0f;
 	switch (key) {
 	case '1':
 		printf("Rotate around x-axis ");
@@ -389,6 +394,7 @@ void keypress(unsigned char key, int x, int y) {
 		printf("%f\n", rotate_z);
 		break;
 	case '£':
+	case 163:	// the above case does not always work, so use the ascii number
 		printf("Rotate backwards around z-axis ");
 		rotate_z -= rotate_increment;
 		rotate_z = fmodf(rotate_z, 360.0f);
@@ -425,16 +431,48 @@ void keypress(unsigned char key, int x, int y) {
 		printf("%f\n", translate_z);
 		break;
 	case '7':
-		printf("Scale in the x-axis\n");
+		printf("Scale positively in the x-axis");
+		scale_x *= scale_increment;
+		printf("%f\n", scale_x);
+		break;
+	case '&':
+		printf("Scale negatively in the x-axis");
+		scale_x /= scale_increment;
+		printf("%f\n", scale_x);
 		break;
 	case '8':
-		printf("Scale in the y-axis\n");
+		printf("Scale positively in the y-axis ");
+		scale_y *= scale_increment;
+		printf("%f\n", scale_y);
+		break;
+	case '*':
+		printf("Scale negatively in the y-axis");
+		scale_y /= scale_increment;
+		printf("%f\n", scale_y);
 		break;
 	case '9':
 		printf("Scale in the z-axis\n");
+		scale_z *= scale_increment;
+		printf("%f\n", scale_z);
+		break;
+	case '(':
+		printf("Scale negatively in the z-axis");
+		scale_z /= scale_increment;
+		printf("%f\n", scale_z);
 		break;
 	case '0':
 		printf("Scale uniformly\n");
+		scale_x *= scale_increment;
+		scale_y *= scale_increment;
+		scale_z *= scale_increment;
+		printf("%f, %f, %f\n", scale_x, scale_y, scale_z);
+		break;
+	case ')':
+		printf("Scale uniformly\n");
+		scale_x /= scale_increment;
+		scale_y /= scale_increment;
+		scale_z /= scale_increment;
+		printf("%f, %f, %f\n", scale_x, scale_y, scale_z);
 		break;
 	case 'w':
 		printf("Move camera forward\n");
