@@ -357,12 +357,24 @@ void init()
 
 }
 
-// Placeholder code for the keypress
+//  Code for the keypress
 void keypress(unsigned char key, int x, int y) {
 	GLfloat rotate_increment = 10.0f;
 	GLfloat translate_increment = 0.5f;
 	GLfloat scale_increment = 2.0f;
 	switch (key) {
+	case '`':
+		printf("`Reset model ");
+		rotate_x = 0.0f;
+		rotate_y = 0.0f;
+		rotate_z = 0.0f;
+		translate_x = 0.0f;
+		translate_y = 0.0f;
+		translate_z = 0.0f;
+		scale_x = 1.0f;
+		scale_y = 1.0f;
+		scale_z = 1.0f;
+		break;
 	case '1':
 		printf("Rotate around x-axis ");
 		rotate_x += rotate_increment;
@@ -486,9 +498,6 @@ void keypress(unsigned char key, int x, int y) {
 	case 'd':
 		printf("Turn camera right\n");
 		break;
-	}
-	if (key == 'x') {
-		//Translate the base, etc.
 	}
 }
 
