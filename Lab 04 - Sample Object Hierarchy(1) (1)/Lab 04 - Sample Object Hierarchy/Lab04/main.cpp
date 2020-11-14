@@ -24,7 +24,8 @@ MESH TO LOAD
 ----------------------------------------------------------------------------*/
 // this mesh is a dae file format but you should be able to use any other format too, obj is typically what is used
 // put the mesh in your project directory, or provide a filepath for it here
-#define MESH_NAME "monkeyhead_smooth.dae"
+#define MESH_NAME "spider.dae"
+#define SECOND_MESH_NAME "leg.dae"
 /*----------------------------------------------------------------------------
 ----------------------------------------------------------------------------*/
 
@@ -330,14 +331,14 @@ void display() {
 	modelChild = rotate_z_deg(modelChild, 180);
 	modelChild = rotate_y_deg(modelChild, rotate_z);
 	modelChild = translate(modelChild, vec3(0.0f, 1.9f, 0.0f));
-
+	/*
 	// Apply the root matrix to the child matrix
 	modelChild = model * modelChild;
 
 	// Update the appropriate uniform and draw the mesh again
 	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, modelChild.m);
 	glDrawArrays(GL_TRIANGLES, 0, mesh_data.mPointCount);
-
+	*/
 	glutSwapBuffers();
 }
 
