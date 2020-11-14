@@ -19,8 +19,6 @@
 // Project includes
 #include "maths_funcs.h"
 
-
-
 /*----------------------------------------------------------------------------
 MESH TO LOAD
 ----------------------------------------------------------------------------*/
@@ -49,6 +47,20 @@ int width = 800;
 int height = 600;
 
 GLuint loc1, loc2, loc3;
+
+vec3 up = vec3(0.0f, 1.0f, 0.0f);
+vec3 right_vector = vec3(1.0, 0.0, 0.0);
+vec3 view_direction = vec3(0.0f, 0.0f, 1.0f);
+vec3 view_position = vec3(0.0f, 0.0f, -5.0f);
+
+GLfloat view_translate_x = 0.0f;
+GLfloat view_translate_y = 0.0f;
+GLfloat view_translate_z = 10.0f;
+
+GLfloat rotate_increment = 1.0f;
+GLfloat translate_increment = 0.1f;
+GLfloat scale_increment = 2.0f;
+
 GLfloat rotate_x = 0.0f;
 GLfloat rotate_y = 0.0f;
 GLfloat rotate_z = 0.0f;
@@ -300,8 +312,11 @@ void display() {
 	model = rotate_z_deg(model, rotate_z);
 	model = translate(model, vec3(translate_x, translate_y, translate_z));
 
-	view = translate(view, vec3(0.0, 0.0, -10.0f));
-
+	view = look_at(
+		view_position,
+		view_position + view_direction,
+		up
+	);
 
 	// update uniforms & draw
 	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
@@ -309,7 +324,7 @@ void display() {
 	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, model.m);
 	glDrawArrays(GL_TRIANGLES, 0, mesh_data.mPointCount);
 
-	/*
+	
 	// Set up the child matrix
 	mat4 modelChild = identity_mat4();
 	modelChild = rotate_z_deg(modelChild, 180);
@@ -322,11 +337,30 @@ void display() {
 	// Update the appropriate uniform and draw the mesh again
 	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, modelChild.m);
 	glDrawArrays(GL_TRIANGLES, 0, mesh_data.mPointCount);
-	*/
 
 	glutSwapBuffers();
 }
 
+
+void moveCamera(GLfloat forward, GLfloat horizontal, GLfloat vertical) {
+	view_position += view_direction * forward + right_vector * horizontal + up * vertical;
+}
+
+void rotateCamera(GLfloat x, GLfloat y, GLfloat z) {
+	x = -x;
+	y = -y;
+	z = -z;
+	vec3 tempDirection = view_direction;
+	versor directionVersor = normalise(quat_from_axis_deg(x, up.v[0], up.v[1], up.v[2]) * quat_from_axis_deg(y, right_vector.v[0], right_vector.v[1], right_vector.v[2]) * quat_from_axis_deg(z, view_direction.v[0], view_direction.v[1], view_direction.v[2]));
+	vec4 directionVec4 = quat_to_mat4(directionVersor).operator*(vec4(view_direction.v[0], view_direction.v[1], view_direction.v[2], 0.0f));
+	view_direction = vec3(directionVec4.v[0], directionVec4.v[1], directionVec4.v[2]);
+
+	versor upVersor = normalise(quat_from_axis_deg(x, up.v[0], up.v[1], up.v[2]) * quat_from_axis_deg(y, right_vector.v[0], right_vector.v[1], right_vector.v[2]) * quat_from_axis_deg(z, tempDirection.v[0], tempDirection.v[1], tempDirection.v[2]));
+	vec4 upVec4 = quat_to_mat4(upVersor).operator*(vec4(up.v[0], up.v[1], up.v[2], 0.0f));
+	up = vec3(upVec4.v[0], upVec4.v[1], upVec4.v[2]);
+
+	right_vector = cross(view_direction, up);
+}
 
 void updateScene() {
 
@@ -353,15 +387,14 @@ void init()
 	// load mesh into a vertex buffer array
 	generateObjectBufferMesh();
 	model = identity_mat4();
-
-
 }
 
-//  Code for the keypress
+void mouseMoved(int newMouseX, int newMouseY) {
+	rotateCamera((GLfloat)newMouseX - width / 2, 0, 0);
+	glutWarpPointer(width/2, height/2);
+}
+
 void keypress(unsigned char key, int x, int y) {
-	GLfloat rotate_increment = 10.0f;
-	GLfloat translate_increment = 0.5f;
-	GLfloat scale_increment = 2.0f;
 	switch (key) {
 	case '`':
 		printf("`Reset model ");
@@ -486,18 +519,38 @@ void keypress(unsigned char key, int x, int y) {
 		scale_z /= scale_increment;
 		printf("%f, %f, %f\n", scale_x, scale_y, scale_z);
 		break;
+	case 'W':
 	case 'w':
-		printf("Move camera forward\n");
+		printf("Move camera forward ");
+		//view_translate_z += translate_increment;
+		moveCamera(translate_increment, 0.0f, 0.0f);
+		printf("View translate z = %f\n", view_translate_z);
 		break;
+	case 'A':
 	case 'a':
-		printf("Turn camera left\n");
+		printf("Move camera left");
+		//view_translate_x += translate_increment;
+		moveCamera(0.0f, -translate_increment, 0.0f);
+		printf("View translate x = %f\n", view_translate_x);
 		break;
+	case 'S':
 	case 's':
-		printf("Move camera backward\n");
+		printf("Move camera backward");
+		//view_translate_z -= translate_increment;
+		moveCamera(-translate_increment, 0.0f, 0.0f);
+		printf("View translate z = %f\n", view_translate_z);
 		break;
+	case 'D':
 	case 'd':
-		printf("Turn camera right\n");
+		printf("Move camera right");
+		//view_translate_x -= translate_increment;
+		moveCamera(0.0f, translate_increment, 0.0f);
+		printf("View translate x = %f\n", view_translate_x);
 		break;
+	case 'Q':
+	case 'q':
+		glutLeaveMainLoop();
+		break;		
 	}
 }
 
@@ -513,6 +566,7 @@ int main(int argc, char** argv) {
 	glutDisplayFunc(display);
 	glutIdleFunc(updateScene);
 	glutKeyboardFunc(keypress);
+	glutPassiveMotionFunc(mouseMoved);
 
 	// A call to glewInit() must be done after glut is initialized!
 	GLenum res = glewInit();
