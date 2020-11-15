@@ -32,7 +32,6 @@ MESH TO LOAD
 /*----------------------------------------------------------------------------
 ----------------------------------------------------------------------------*/
 using namespace std;
-GLuint shaderProgramID;
 
 int width = 800;
 int height = 600;
@@ -55,9 +54,12 @@ GLfloat scale_x = 1.0f;
 GLfloat scale_y = 1.0f;
 GLfloat scale_z = 1.0f;
 
+GLuint shaderProgramID;
+
 mat4 view;
 mat4 persp_proj;
 mat4 model;
+
 
 void display() {
 	// tell GL to only draw onto a pixel if the shape is closer to the viewer
@@ -67,15 +69,14 @@ void display() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(shaderProgramID);
 
-
 	//Declare your uniform variables that will be used in your shader
 	int matrix_location = glGetUniformLocation(shaderProgramID, "model");
 	int view_mat_location = glGetUniformLocation(shaderProgramID, "view");
 	int proj_mat_location = glGetUniformLocation(shaderProgramID, "proj");
 
-
 	// Root of the Hierarchy
-	view = identity_mat4();
+	mat4 identity_matrix = identity_mat4();
+	view = identity_matrix;
 	persp_proj = perspective(45.0f, (float)width / (float)height, 0.1f, 1000.0f);
 	model = identity_mat4();
 	model = scale(model, vec3(scale_x, scale_y, scale_z));
@@ -99,17 +100,47 @@ void display() {
 
 	glBindVertexArray(leg.vao);
 
-	// Set up the child matrix
-	mat4 modelChild = identity_mat4();
-	modelChild = rotate_z_deg(modelChild, 180);
-	modelChild = rotate_y_deg(modelChild, rotate_z);
-	modelChild = translate(modelChild, vec3(0.0f, 1.9f, 0.0f));
-	// Apply the root matrix to the child matrix
-	modelChild = model * modelChild;
+	
+	mat4 legArray[8 * sizeof(mat4)];
 
-	// Update the appropriate uniform and draw the mesh again
-	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, modelChild.m);
-	glDrawArrays(GL_TRIANGLES, 0, leg.mesh_data.mPointCount);
+	vec3 leg_scaling_factor = vec3(0.6, 0.6, 0.6);
+
+	legArray[0] = scale(identity_matrix, leg_scaling_factor);
+	legArray[0] = translate(legArray[0], vec3(0.0f, 0.0f, -1.5f));
+
+	legArray[1] = scale(identity_matrix, leg_scaling_factor);
+	legArray[1] = rotate_y_deg(legArray[1], 180);
+	legArray[1] = translate(legArray[1], vec3(0.0f, 0.0f, -1.5f));
+
+	legArray[2] = scale(identity_matrix, leg_scaling_factor);
+	legArray[2] = translate(legArray[2], vec3(0.0f, 0.0f, -0.667f));
+
+	legArray[3] = scale(identity_matrix, leg_scaling_factor);
+	legArray[3] = translate(legArray[3], vec3(0.0f, 0.0f, -0.667f));
+	legArray[3] = rotate_y_deg(legArray[3], 180);
+
+	legArray[4] = scale(identity_matrix, leg_scaling_factor);
+	legArray[4] = translate(legArray[4], vec3(0.0f, 0.0f, 0.167f));
+
+	legArray[5] = scale(identity_matrix, leg_scaling_factor);
+	legArray[5] = rotate_y_deg(legArray[5], 180);
+	legArray[5] = translate(legArray[5] , vec3(0.0f, 0.0f, 0.167f));
+
+	legArray[6] = scale(identity_matrix, leg_scaling_factor);
+	legArray[6] = translate(legArray[6], vec3(0.0f, 0.0f, 1.0f));
+
+	legArray[7] = scale(identity_matrix, leg_scaling_factor);
+	legArray[7] = rotate_y_deg(legArray[7], 180);
+	legArray[7] = translate(legArray[7], vec3(0.0f, 0.0f, 1.0f));
+
+
+
+	for (int i = 0; i < 8; i++) {
+		legArray[i] = model * legArray[i];
+		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, legArray[i].m);
+		glDrawArrays(GL_TRIANGLES, 0, leg.mesh_data.mPointCount);
+	}
+
 	glutSwapBuffers();
 }
 
@@ -307,7 +338,7 @@ int main(int argc, char** argv) {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
 	glutInitWindowSize(width, height);
-	glutCreateWindow("Hello Triangle");
+	glutCreateWindow("Spooky Spider");
 
 	// Tell glut where the display function is
 	glutDisplayFunc(display);

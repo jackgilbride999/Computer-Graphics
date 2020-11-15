@@ -1,5 +1,4 @@
 #pragma once
-
 // Windows includes (For Time, IO, etc.)
 #include <windows.h>
 #include <mmsystem.h>
@@ -12,11 +11,6 @@
 // OpenGL includes
 #include <GL/glew.h>
 #include <GL/freeglut.h>
-
-// Assimp includes
-#include <assimp/cimport.h> // scene importer
-#include <assimp/scene.h> // collects data
-#include <assimp/postprocess.h> // various extra operations
 
 // Project includes
 #include "maths_funcs.h"
