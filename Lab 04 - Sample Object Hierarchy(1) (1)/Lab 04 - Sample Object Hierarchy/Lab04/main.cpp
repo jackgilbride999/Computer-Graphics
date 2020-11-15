@@ -18,10 +18,9 @@
 
 // Project includes
 #include "maths_funcs.h"
-
 #include "Object.h"
-
 #include "Shaders.h"
+#include "Camera.h"
 
 /*----------------------------------------------------------------------------
 MESH TO LOAD
@@ -40,15 +39,7 @@ int height = 600;
 
 Object spider = Object(SPIDER_MESH_NAME);
 Object leg = Object(LEG_MESH_NAME);
-
-vec3 up = vec3(0.0f, 1.0f, 0.0f);
-vec3 view_direction = vec3(0.0f, 0.0f, 1.0f);
-vec3 view_position = vec3(0.0f, 0.0f, -5.0f);
-vec3 right_vector = cross(view_direction, up);
-
-GLfloat view_translate_x = 0.0f;
-GLfloat view_translate_y = 0.0f;
-GLfloat view_translate_z = 10.0f;
+Camera camera = Camera(vec3(0.0f, 0.0f, -5.0f), vec3(0.0f, 0.0f, 1.0f));
 
 GLfloat rotate_increment = 1.0f;
 GLfloat translate_increment = 0.1f;
@@ -69,7 +60,6 @@ mat4 persp_proj;
 mat4 model;
 
 void display() {
-
 	// tell GL to only draw onto a pixel if the shape is closer to the viewer
 	glEnable(GL_DEPTH_TEST); // enable depth-testing
 	glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
@@ -95,9 +85,9 @@ void display() {
 	model = translate(model, vec3(translate_x, translate_y, translate_z));
 
 	view = look_at(
-		view_position,
-		view_position + view_direction,
-		up
+		camera.position,
+		camera.position + camera.direction,
+		camera.up
 	);
 
 	// update uniforms & draw
@@ -123,27 +113,6 @@ void display() {
 	glutSwapBuffers();
 }
 
-
-void moveCamera(GLfloat forward, GLfloat horizontal, GLfloat vertical) {
-	view_position += view_direction * forward + right_vector * horizontal + up * vertical;
-}
-
-void rotateCamera(GLfloat x, GLfloat y, GLfloat z) {
-	x = -x;
-	y = -y;
-	z = -z;
-	vec3 tempDirection = view_direction;
-	versor directionVersor = normalise(quat_from_axis_deg(x, up.v[0], up.v[1], up.v[2]) * quat_from_axis_deg(y, right_vector.v[0], right_vector.v[1], right_vector.v[2]) * quat_from_axis_deg(z, view_direction.v[0], view_direction.v[1], view_direction.v[2]));
-	vec4 directionVec4 = quat_to_mat4(directionVersor).operator*(vec4(view_direction.v[0], view_direction.v[1], view_direction.v[2], 0.0f));
-	view_direction = vec3(directionVec4.v[0], directionVec4.v[1], directionVec4.v[2]);
-
-	versor upVersor = normalise(quat_from_axis_deg(x, up.v[0], up.v[1], up.v[2]) * quat_from_axis_deg(y, right_vector.v[0], right_vector.v[1], right_vector.v[2]) * quat_from_axis_deg(z, tempDirection.v[0], tempDirection.v[1], tempDirection.v[2]));
-	vec4 upVec4 = quat_to_mat4(upVersor).operator*(vec4(up.v[0], up.v[1], up.v[2], 0.0f));
-	up = vec3(upVec4.v[0], upVec4.v[1], upVec4.v[2]);
-
-	right_vector = cross(view_direction, up);
-}
-
 void updateScene() {
 
 	static DWORD last_time = 0;
@@ -164,8 +133,6 @@ void updateScene() {
 
 void init()
 {
-	// Set up the shaders
-	// load mesh into a vertex buffer array
 	shaderProgramID = Shaders::CompileShaders();
 
 	glGenVertexArrays(1, &spider.vao);
@@ -178,7 +145,7 @@ void init()
 }
 
 void mouseMoved(int newMouseX, int newMouseY) {
-	rotateCamera((GLfloat)newMouseX - width / 2, 0, 0);
+	camera.rotate((GLfloat)newMouseX - width / 2, 0, 0);
 	glutWarpPointer(width/2, height/2);
 }
 
@@ -310,30 +277,22 @@ void keypress(unsigned char key, int x, int y) {
 	case 'W':
 	case 'w':
 		printf("Move camera forward ");
-		//view_translate_z += translate_increment;
-		moveCamera(translate_increment, 0.0f, 0.0f);
-		printf("View translate z = %f\n", view_translate_z);
+		camera.move(translate_increment, 0.0f, 0.0f);
 		break;
 	case 'A':
 	case 'a':
 		printf("Move camera left");
-		//view_translate_x += translate_increment;
-		moveCamera(0.0f, -translate_increment, 0.0f);
-		printf("View translate x = %f\n", view_translate_x);
+		camera.move(0.0f, -translate_increment, 0.0f);
 		break;
 	case 'S':
 	case 's':
 		printf("Move camera backward");
-		//view_translate_z -= translate_increment;
-		moveCamera(-translate_increment, 0.0f, 0.0f);
-		printf("View translate z = %f\n", view_translate_z);
+		camera.move(-translate_increment, 0.0f, 0.0f);
 		break;
 	case 'D':
 	case 'd':
 		printf("Move camera right");
-		//view_translate_x -= translate_increment;
-		moveCamera(0.0f, translate_increment, 0.0f);
-		printf("View translate x = %f\n", view_translate_x);
+		camera.move(0.0f, translate_increment, 0.0f);
 		break;
 	case 'Q':
 	case 'q':
