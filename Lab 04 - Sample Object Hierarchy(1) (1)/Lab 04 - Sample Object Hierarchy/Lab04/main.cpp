@@ -24,8 +24,8 @@ MESH TO LOAD
 ----------------------------------------------------------------------------*/
 // this mesh is a dae file format but you should be able to use any other format too, obj is typically what is used
 // put the mesh in your project directory, or provide a filepath for it here
-#define MESH_NAME "spider.dae"
-#define SECOND_MESH_NAME "leg.dae"
+#define SPIDER_MESH_NAME "spider.dae"
+#define LEG_MESH_NAME "leg.dae"
 /*----------------------------------------------------------------------------
 ----------------------------------------------------------------------------*/
 
@@ -42,17 +42,22 @@ typedef struct
 using namespace std;
 GLuint shaderProgramID;
 
-ModelData mesh_data;
+ModelData spider_mesh_data;
+ModelData leg_mesh_data;
 unsigned int mesh_vao = 0;
 int width = 800;
 int height = 600;
 
+unsigned int spider_vao = 0;
+unsigned int leg_vao = 0;
+
+
 GLuint loc1, loc2, loc3;
 
 vec3 up = vec3(0.0f, 1.0f, 0.0f);
-vec3 right_vector = vec3(1.0, 0.0, 0.0);
 vec3 view_direction = vec3(0.0f, 0.0f, 1.0f);
 vec3 view_position = vec3(0.0f, 0.0f, -5.0f);
+vec3 right_vector = cross(view_direction, up);
 
 GLfloat view_translate_x = 0.0f;
 GLfloat view_translate_y = 0.0f;
@@ -241,48 +246,46 @@ GLuint CompileShaders()
 
 // VBO Functions - click on + to expand
 #pragma region VBO_FUNCTIONS
-void generateObjectBufferMesh() {
-	/*----------------------------------------------------------------------------
-	LOAD MESH HERE AND COPY INTO BUFFERS
-	----------------------------------------------------------------------------*/
+void generateObjectBufferMesh(ModelData mesh_data, unsigned int vao) {
 
 	//Note: you may get an error "vector subscript out of range" if you are using this code for a mesh that doesnt have positions and normals
 	//Might be an idea to do a check for that before generating and binding the buffer.
 
-	mesh_data = load_mesh(MESH_NAME);
-	unsigned int vp_vbo = 0;
-	loc1 = glGetAttribLocation(shaderProgramID, "vertex_position");
-	loc2 = glGetAttribLocation(shaderProgramID, "vertex_normal");
-	loc3 = glGetAttribLocation(shaderProgramID, "vertex_texture");
+	//mesh_data = load_mesh(MESH_NAME);																					// load the spider mesh
+	//mesh_data = load_mesh(mesh_name);																					// load the spider mesh
+	
+																														//unsigned int vao = 0;																								// a pointer to the vao
+	glBindVertexArray(vao);																								// bind the vao
 
-	glGenBuffers(1, &vp_vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vp_vbo);
-	glBufferData(GL_ARRAY_BUFFER, mesh_data.mPointCount * sizeof(vec3), &mesh_data.mVertices[0], GL_STATIC_DRAW);
-	unsigned int vn_vbo = 0;
-	glGenBuffers(1, &vn_vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vn_vbo);
-	glBufferData(GL_ARRAY_BUFFER, mesh_data.mPointCount * sizeof(vec3), &mesh_data.mNormals[0], GL_STATIC_DRAW);
+	unsigned int vp_vbo = 0;																							// a pointer to vertex position vbo
+	glGenBuffers(1, &vp_vbo);																							// generate buffer for the vertex position vbo
+	glBindBuffer(GL_ARRAY_BUFFER, vp_vbo);																				// bind a buffer to the vertex position vbo
+	glBufferData(GL_ARRAY_BUFFER, mesh_data.mPointCount * sizeof(vec3), &mesh_data.mVertices[0], GL_STATIC_DRAW);		// load data to the vertex position vbo
 
-	//	This is for texture coordinates which you don't currently need, so I have commented it out
-	//	unsigned int vt_vbo = 0;
-	//	glGenBuffers (1, &vt_vbo);
-	//	glBindBuffer (GL_ARRAY_BUFFER, vt_vbo);
-	//	glBufferData (GL_ARRAY_BUFFER, monkey_head_data.mTextureCoords * sizeof (vec2), &monkey_head_data.mTextureCoords[0], GL_STATIC_DRAW);
+	loc1 = glGetAttribLocation(shaderProgramID, "vertex_position");														// a pointer to vertex position in the shader
+	glEnableVertexAttribArray(loc1);																					// point at the vertex position in the shader
+	glBindBuffer(GL_ARRAY_BUFFER, vp_vbo);																				// bind the vertex position vbo to it
+	glVertexAttribPointer(loc1, 3, GL_FLOAT, GL_FALSE, 0, NULL);														// store vertex position location in the vao
+	
+	unsigned int vn_vbo = 0;																							// a pointer to the vertex normal vbo
+	glGenBuffers(1, &vn_vbo);																							// generate buffer for the vertex normal vbo
+	glBindBuffer(GL_ARRAY_BUFFER, vn_vbo);																				// bind a buffer to the vertex normal vbo
+	glBufferData(GL_ARRAY_BUFFER, mesh_data.mPointCount * sizeof(vec3), &mesh_data.mNormals[0], GL_STATIC_DRAW);		// load data to the vertex normal vbo
 
-	unsigned int vao = 0;
-	glBindVertexArray(vao);
+	loc2 = glGetAttribLocation(shaderProgramID, "vertex_normal");														// a pointer to vertex normal in the shader
+	glEnableVertexAttribArray(loc2);																					// point at the vertex normal in the shader
+	glBindBuffer(GL_ARRAY_BUFFER, vn_vbo);																				// bind the vertex normal vbo to it
+	glVertexAttribPointer(loc2, 3, GL_FLOAT, GL_FALSE, 0, NULL);														// store vertex normal location in the vao
 
-	glEnableVertexAttribArray(loc1);
-	glBindBuffer(GL_ARRAY_BUFFER, vp_vbo);
-	glVertexAttribPointer(loc1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-	glEnableVertexAttribArray(loc2);
-	glBindBuffer(GL_ARRAY_BUFFER, vn_vbo);
-	glVertexAttribPointer(loc2, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-
-	//	This is for texture coordinates which you don't currently need, so I have commented it out
-	//	glEnableVertexAttribArray (loc3);
-	//	glBindBuffer (GL_ARRAY_BUFFER, vt_vbo);
-	//	glVertexAttribPointer (loc3, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+	unsigned int vt_vbo = 0;
+	glGenBuffers (1, &vt_vbo);
+	glBindBuffer (GL_ARRAY_BUFFER, vt_vbo);
+	glBufferData (GL_ARRAY_BUFFER, mesh_data.mPointCount * sizeof (vec3), &mesh_data.mTextureCoords[0], GL_STATIC_DRAW);
+	
+	loc3 = glGetAttribLocation(shaderProgramID, "vertex_texture");														// a pointer to the vertex texture in the shader
+	glEnableVertexAttribArray (loc3);
+	glBindBuffer (GL_ARRAY_BUFFER, vt_vbo);
+	glVertexAttribPointer (loc3, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 }
 #pragma endregion VBO_FUNCTIONS
 
@@ -323,22 +326,22 @@ void display() {
 	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
 	glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
 	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, model.m);
-	glDrawArrays(GL_TRIANGLES, 0, mesh_data.mPointCount);
+	glBindVertexArray(spider_vao);
+	glDrawArrays(GL_TRIANGLES, 0, spider_mesh_data.mPointCount);
 
-	
+	glBindVertexArray(leg_vao);
+
 	// Set up the child matrix
 	mat4 modelChild = identity_mat4();
 	modelChild = rotate_z_deg(modelChild, 180);
 	modelChild = rotate_y_deg(modelChild, rotate_z);
 	modelChild = translate(modelChild, vec3(0.0f, 1.9f, 0.0f));
-	/*
 	// Apply the root matrix to the child matrix
 	modelChild = model * modelChild;
 
 	// Update the appropriate uniform and draw the mesh again
 	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, modelChild.m);
-	glDrawArrays(GL_TRIANGLES, 0, mesh_data.mPointCount);
-	*/
+	glDrawArrays(GL_TRIANGLES, 0, leg_mesh_data.mPointCount);
 	glutSwapBuffers();
 }
 
@@ -386,7 +389,15 @@ void init()
 	// Set up the shaders
 	GLuint shaderProgramID = CompileShaders();
 	// load mesh into a vertex buffer array
-	generateObjectBufferMesh();
+	spider_mesh_data = load_mesh(SPIDER_MESH_NAME);
+	glGenVertexArrays(1, &spider_vao);
+	generateObjectBufferMesh(spider_mesh_data, spider_vao);
+
+
+	leg_mesh_data = load_mesh(LEG_MESH_NAME);
+	glGenVertexArrays(1, &leg_vao);
+	generateObjectBufferMesh(leg_mesh_data, leg_vao);
+
 	model = identity_mat4();
 }
 
