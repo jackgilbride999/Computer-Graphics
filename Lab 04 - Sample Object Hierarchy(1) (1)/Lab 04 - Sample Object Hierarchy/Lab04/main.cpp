@@ -167,16 +167,14 @@ void display() {
 	glutSwapBuffers();
 }
 
-void update_leg_rotation(GLfloat& leg_rotation, boolean& increasing, int delta) {
+void update_leg_rotation(GLfloat &leg_rotation, boolean &increasing, float delta) {
 	if (increasing) {
-		printf("increasing, %f\n", leg_rotation);
 		leg_rotation += (20.0f * delta);
 		if (leg_rotation > 5.0f) {
 			increasing = false;
 		}
 	}
 	else {
-		printf("decreasing, %f\n", leg_rotation);
 		leg_rotation -= (20.0f * delta);
 		if (leg_rotation < -5.0f) {
 			increasing = true;
@@ -194,39 +192,8 @@ void updateScene() {
 	last_time = curr_time;
 
 	//doesnt work yet:
-	//update_leg_rotation(leg_set_1_rotate_x, leg_set_1_rotate_x_increasing, delta);
-
-	
-	if (leg_set_1_rotate_x_increasing) {
-		printf("increasing, %f\n", leg_set_1_rotate_x);
-		leg_set_1_rotate_x += (20.0f * delta);
-		if (leg_set_1_rotate_x > 5.0f) {
-			leg_set_1_rotate_x_increasing = false;
-		}
-	}
-	else {
-		printf("decreasing, %f\n", leg_set_1_rotate_x);
-		leg_set_1_rotate_x -= (20.0f * delta);
-		if (leg_set_1_rotate_x < -5.0f) {
-			leg_set_1_rotate_x_increasing = true;
-		}
-	}
-
-	if (leg_set_2_rotate_x_increasing) {
-		printf("increasing, %f\n", leg_set_2_rotate_x);
-		leg_set_2_rotate_x += (20.0f * delta);
-		if (leg_set_2_rotate_x > 5.0f) {
-			leg_set_2_rotate_x_increasing = false;
-		}
-	}
-	else {
-		printf("decreasing, %f\n", leg_set_2_rotate_x);
-		leg_set_2_rotate_x -= (20.0f * delta);
-		if (leg_set_2_rotate_x < -5.0f) {
-			leg_set_2_rotate_x_increasing = true;
-		}
-	}
-	
+	update_leg_rotation(leg_set_1_rotate_x, leg_set_1_rotate_x_increasing, delta);
+	update_leg_rotation(leg_set_2_rotate_x, leg_set_2_rotate_x_increasing, delta);
 
 
 	// Rotate the model slowly around the y axis at 20 degrees per second
