@@ -54,6 +54,18 @@ GLfloat scale_x = 1.0f;
 GLfloat scale_y = 1.0f;
 GLfloat scale_z = 1.0f;
 
+GLfloat leg_set_1_rotate_x = 0.0f;
+boolean leg_set_1_rotate_x_increasing = true;
+
+GLfloat leg_set_2_rotate_x = 0.0f;
+boolean leg_set_2_rotate_x_increasing = false;
+
+GLfloat leg_set_1_rotate_y = 0.0f;
+GLfloat leg_set_1_rotate_y_increasing = true;
+
+GLfloat leg_set_2_rotate_y = 0.0f;
+boolean leg_set_2_rotate_y_increasing = false;
+
 GLuint shaderProgramID;
 
 mat4 view;
@@ -109,31 +121,39 @@ void display() {
 	vec3 leg_scaling_factor = vec3(0.6, 0.6, 0.6);
 
 	legArray[0] = scale(identity_matrix, leg_scaling_factor);
+	legArray[0] = rotate_x_deg(legArray[0], leg_set_1_rotate_x);
 	legArray[0] = translate(legArray[0], vec3(0.0f, 0.0f, -1.5f));
 
 	legArray[1] = scale(identity_matrix, leg_scaling_factor);
 	legArray[1] = rotate_y_deg(legArray[1], 180);
+	legArray[1] = rotate_x_deg(legArray[1], leg_set_2_rotate_x);
 	legArray[1] = translate(legArray[1], vec3(0.0f, 0.0f, -1.5f));
 
 	legArray[2] = scale(identity_matrix, leg_scaling_factor);
+	legArray[2] = rotate_x_deg(legArray[2], leg_set_2_rotate_x);
 	legArray[2] = translate(legArray[2], vec3(0.0f, 0.0f, -0.667f));
 
 	legArray[3] = scale(identity_matrix, leg_scaling_factor);
-	legArray[3] = translate(legArray[3], vec3(0.0f, 0.0f, -0.667f));
 	legArray[3] = rotate_y_deg(legArray[3], 180);
+	legArray[3] = rotate_x_deg(legArray[3], leg_set_1_rotate_x);
+	legArray[3] = translate(legArray[3], vec3(0.0f, 0.0f, -0.667f));
 
 	legArray[4] = scale(identity_matrix, leg_scaling_factor);
+	legArray[4] = rotate_x_deg(legArray[4], leg_set_1_rotate_x);
 	legArray[4] = translate(legArray[4], vec3(0.0f, 0.0f, 0.167f));
 
 	legArray[5] = scale(identity_matrix, leg_scaling_factor);
 	legArray[5] = rotate_y_deg(legArray[5], 180);
+	legArray[5] = rotate_x_deg(legArray[5], leg_set_2_rotate_x);
 	legArray[5] = translate(legArray[5] , vec3(0.0f, 0.0f, 0.167f));
 
 	legArray[6] = scale(identity_matrix, leg_scaling_factor);
+	legArray[6] = rotate_x_deg(legArray[6], leg_set_2_rotate_x);
 	legArray[6] = translate(legArray[6], vec3(0.0f, 0.0f, 1.0f));
 
 	legArray[7] = scale(identity_matrix, leg_scaling_factor);
 	legArray[7] = rotate_y_deg(legArray[7], 180);
+	legArray[7] = rotate_x_deg(legArray[7], leg_set_1_rotate_x);
 	legArray[7] = translate(legArray[7], vec3(0.0f, 0.0f, 1.0f));
 
 
@@ -147,6 +167,23 @@ void display() {
 	glutSwapBuffers();
 }
 
+void update_leg_rotation(GLfloat& leg_rotation, boolean& increasing, int delta) {
+	if (increasing) {
+		printf("increasing, %f\n", leg_rotation);
+		leg_rotation += (20.0f * delta);
+		if (leg_rotation > 5.0f) {
+			increasing = false;
+		}
+	}
+	else {
+		printf("decreasing, %f\n", leg_rotation);
+		leg_rotation -= (20.0f * delta);
+		if (leg_rotation < -5.0f) {
+			increasing = true;
+		}
+	}
+}
+
 void updateScene() {
 
 	static DWORD last_time = 0;
@@ -155,6 +192,42 @@ void updateScene() {
 		last_time = curr_time;
 	float delta = (curr_time - last_time) * 0.001f;
 	last_time = curr_time;
+
+	//doesnt work yet:
+	//update_leg_rotation(leg_set_1_rotate_x, leg_set_1_rotate_x_increasing, delta);
+
+	
+	if (leg_set_1_rotate_x_increasing) {
+		printf("increasing, %f\n", leg_set_1_rotate_x);
+		leg_set_1_rotate_x += (20.0f * delta);
+		if (leg_set_1_rotate_x > 5.0f) {
+			leg_set_1_rotate_x_increasing = false;
+		}
+	}
+	else {
+		printf("decreasing, %f\n", leg_set_1_rotate_x);
+		leg_set_1_rotate_x -= (20.0f * delta);
+		if (leg_set_1_rotate_x < -5.0f) {
+			leg_set_1_rotate_x_increasing = true;
+		}
+	}
+
+	if (leg_set_2_rotate_x_increasing) {
+		printf("increasing, %f\n", leg_set_2_rotate_x);
+		leg_set_2_rotate_x += (20.0f * delta);
+		if (leg_set_2_rotate_x > 5.0f) {
+			leg_set_2_rotate_x_increasing = false;
+		}
+	}
+	else {
+		printf("decreasing, %f\n", leg_set_2_rotate_x);
+		leg_set_2_rotate_x -= (20.0f * delta);
+		if (leg_set_2_rotate_x < -5.0f) {
+			leg_set_2_rotate_x_increasing = true;
+		}
+	}
+	
+
 
 	// Rotate the model slowly around the y axis at 20 degrees per second
 	//rotate_z += 20.0f * delta;
