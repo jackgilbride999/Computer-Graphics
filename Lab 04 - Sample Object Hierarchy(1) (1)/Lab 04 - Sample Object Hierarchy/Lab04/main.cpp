@@ -29,6 +29,8 @@ MESH TO LOAD
 // put the mesh in your project directory, or provide a filepath for it here
 #define SPIDER_MESH_NAME "spider.dae"
 #define LEG_MESH_NAME "leg.dae"
+#define TILE_MESH_NAME "tile.dae"
+
 /*----------------------------------------------------------------------------
 ----------------------------------------------------------------------------*/
 using namespace std;
@@ -38,7 +40,8 @@ int height = 600;
 
 Object spider = Object(SPIDER_MESH_NAME);
 Object leg = Object(LEG_MESH_NAME);
-Camera camera = Camera(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f));
+Object tile = Object(TILE_MESH_NAME);
+Camera camera = Camera(vec3(0.0f, 1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f));
 
 GLfloat rotate_increment = 1.0f;
 GLfloat translate_increment = 0.1f;
@@ -60,11 +63,8 @@ boolean leg_set_1_rotate_x_increasing = true;
 GLfloat leg_set_2_rotate_x = 0.0f;
 boolean leg_set_2_rotate_x_increasing = false;
 
-GLfloat leg_set_1_rotate_y = 0.0f;
-GLfloat leg_set_1_rotate_y_increasing = true;
-
-GLfloat leg_set_2_rotate_y = 0.0f;
-boolean leg_set_2_rotate_y_increasing = false;
+boolean animation = false;
+boolean mouseInput = false;
 
 GLuint shaderProgramID;
 
@@ -97,7 +97,7 @@ void display() {
 	model = rotate_y_deg(model, rotate_y);
 	model = rotate_z_deg(model, rotate_z);
 
-	model = translate(model, vec3(0.0f, 0.0f, 10.0f));
+	model = translate(model, vec3(0.0f, 1.4f, 10.0f));
 	model = translate(model, vec3(translate_x, translate_y, translate_z));
 
 	view = look_at(
@@ -110,6 +110,7 @@ void display() {
 	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
 	glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
 	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, model.m);
+
 	glBindVertexArray(spider.vao);
 	glDrawArrays(GL_TRIANGLES, 0, spider.mesh_data.mPointCount);
 
@@ -157,12 +158,19 @@ void display() {
 	legArray[7] = translate(legArray[7], vec3(0.0f, 0.0f, 1.0f));
 
 
-
 	for (int i = 0; i < 8; i++) {
 		legArray[i] = model * legArray[i];
 		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, legArray[i].m);
 		glDrawArrays(GL_TRIANGLES, 0, leg.mesh_data.mPointCount);
 	}
+
+	glBindVertexArray(tile.vao);
+	mat4 floor_matrix = identity_matrix;
+	floor_matrix = scale(floor_matrix, vec3(100, 0, 100));
+	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, floor_matrix.m);
+	glDrawArrays(GL_TRIANGLES, 0, tile.mesh_data.mPointCount);
+
+
 
 	glutSwapBuffers();
 }
@@ -183,7 +191,6 @@ void update_leg_rotation(GLfloat &leg_rotation, boolean &increasing, float delta
 }
 
 void updateScene() {
-
 	static DWORD last_time = 0;
 	DWORD curr_time = timeGetTime();
 	if (last_time == 0)
@@ -191,15 +198,10 @@ void updateScene() {
 	float delta = (curr_time - last_time) * 0.001f;
 	last_time = curr_time;
 
-	//doesnt work yet:
-	update_leg_rotation(leg_set_1_rotate_x, leg_set_1_rotate_x_increasing, delta);
-	update_leg_rotation(leg_set_2_rotate_x, leg_set_2_rotate_x_increasing, delta);
-
-
-	// Rotate the model slowly around the y axis at 20 degrees per second
-	//rotate_z += 20.0f * delta;
-	//rotate_z = fmodf(rotate_z, 360.0f);
-
+	if (animation) {
+		update_leg_rotation(leg_set_1_rotate_x, leg_set_1_rotate_x_increasing, delta);
+		update_leg_rotation(leg_set_2_rotate_x, leg_set_2_rotate_x_increasing, delta);
+	}
 	// Draw the next frame
 	glutPostRedisplay();
 }
@@ -214,13 +216,18 @@ void init()
 
 	glGenVertexArrays(1, &leg.vao);
 	leg.generateObjectBufferMesh(shaderProgramID);
+
+	glGenVertexArrays(1, &tile.vao);
+	tile.generateObjectBufferMesh(shaderProgramID);
 	
 	model = identity_mat4();
 }
 
 void mouseMoved(int newMouseX, int newMouseY) {
-	camera.rotate((GLfloat)newMouseX - width / 2, 0, 0);
-	glutWarpPointer(width/2, height/2);
+	if (mouseInput) {
+		camera.rotate((GLfloat)newMouseX - width / 2, 0, 0);
+		glutWarpPointer(width / 2, height / 2);
+	}
 }
 
 void keypress(unsigned char key, int x, int y) {
@@ -367,6 +374,14 @@ void keypress(unsigned char key, int x, int y) {
 	case 'd':
 		printf("Move camera right");
 		camera.move(0.0f, translate_increment, 0.0f);
+		break;
+	case 'E':
+	case 'e':
+		animation = !animation;
+		break;
+	case 'm':
+	case 'M':
+		mouseInput = !mouseInput;
 		break;
 	case 'Q':
 	case 'q':
