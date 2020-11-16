@@ -38,7 +38,7 @@ int height = 600;
 
 Object spider = Object(SPIDER_MESH_NAME);
 Object leg = Object(LEG_MESH_NAME);
-Camera camera = Camera(vec3(0.0f, 0.0f, -5.0f), vec3(0.0f, 0.0f, 1.0f));
+Camera camera = Camera(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f));
 
 GLfloat rotate_increment = 1.0f;
 GLfloat translate_increment = 0.1f;
@@ -81,8 +81,11 @@ void display() {
 	model = identity_mat4();
 	model = scale(model, vec3(scale_x, scale_y, scale_z));
 	model = rotate_x_deg(model, rotate_x);
+	model = rotate_y_deg(model, 180);
 	model = rotate_y_deg(model, rotate_y);
 	model = rotate_z_deg(model, rotate_z);
+
+	model = translate(model, vec3(0.0f, 0.0f, 10.0f));
 	model = translate(model, vec3(translate_x, translate_y, translate_z));
 
 	view = look_at(
