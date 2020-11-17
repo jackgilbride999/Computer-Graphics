@@ -1,10 +1,10 @@
-#include "Object.h"
+#include "Model.h"
 
-Object::Object(const char* file_name) {
+Model::Model(const char* file_name) {
 	mesh_data = load_mesh(file_name);
 }
 
-ModelData Object::load_mesh(const char* file_name) {
+ModelData Model::load_mesh(const char* file_name) {
 	ModelData modelData;
 
 	/* Use assimp to read the model file, forcing it to be read as    */
@@ -55,7 +55,7 @@ ModelData Object::load_mesh(const char* file_name) {
 	return modelData;
 }
 
-void Object::generateObjectBufferMesh(GLuint shaderProgramID) {
+void Model::generateObjectBufferMesh(GLuint shaderProgramID) {
 
 	//Note: you may get an error "vector subscript out of range" if you are using this code for a mesh that doesnt have positions and normals
 	//Might be an idea to do a check for that before generating and binding the buffer.

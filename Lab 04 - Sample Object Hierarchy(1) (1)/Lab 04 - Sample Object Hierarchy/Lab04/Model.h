@@ -27,13 +27,13 @@ struct ModelData
 	std::vector<vec3> mNormals;
 	std::vector<vec2> mTextureCoords;
 };
-class Object
+class Model
 {
 
 public:
 	unsigned int vao;
 	ModelData mesh_data;
-	Object(const char* file_name);
+	Model(const char* file_name);
 	void generateObjectBufferMesh(GLuint shaderProgramID);
 
 private: 

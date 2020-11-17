@@ -18,7 +18,7 @@
 
 // Project includes
 #include "maths_funcs.h"
-#include "Object.h"
+#include "Model.h"
 #include "Shaders.h"
 #include "Camera.h"
 
@@ -38,9 +38,9 @@ using namespace std;
 int width = 800;
 int height = 600;
 
-Object spider = Object(SPIDER_MESH_NAME);
-Object leg = Object(LEG_MESH_NAME);
-Object tile = Object(TILE_MESH_NAME);
+Model spider = Model(SPIDER_MESH_NAME);
+Model leg = Model(LEG_MESH_NAME);
+Model tile = Model(TILE_MESH_NAME);
 Camera camera = Camera(vec3(0.0f, 1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f));
 
 GLfloat rotate_increment = 1.0f;
@@ -56,6 +56,7 @@ GLfloat translate_z = 0.0f;
 GLfloat scale_x = 1.0f;
 GLfloat scale_y = 1.0f;
 GLfloat scale_z = 1.0f;
+
 
 GLfloat leg_set_1_rotate_x = 0.0f;
 boolean leg_set_1_rotate_x_increasing = true;
