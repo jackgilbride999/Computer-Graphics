@@ -47,6 +47,8 @@ GLfloat rotate_increment = 1.0f;
 GLfloat translate_increment = 0.1f;
 GLfloat scale_increment = 2.0f;
 
+GLfloat perspective_fovy = 45.0f;
+
 GLfloat rotate_x = 0.0f;
 GLfloat rotate_y = 0.0f;
 GLfloat rotate_z = 0.0f;
@@ -67,7 +69,9 @@ boolean leg_set_2_rotate_x_increasing = false;
 boolean animation = false;
 boolean mouseInput = false;
 
-GLuint shaderProgramID;
+int matrix_location;
+int view_mat_location;
+int proj_mat_location;
 
 mat4 view;
 mat4 persp_proj;
@@ -78,26 +82,19 @@ void display() {
 	// tell GL to only draw onto a pixel if the shape is closer to the viewer
 	glEnable(GL_DEPTH_TEST); // enable depth-testing
 	glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
-	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+	glClearColor(1.0f, 0.5f, 0.5f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glUseProgram(shaderProgramID);
-
-	//Declare your uniform variables that will be used in your shader
-	int matrix_location = glGetUniformLocation(shaderProgramID, "model");
-	int view_mat_location = glGetUniformLocation(shaderProgramID, "view");
-	int proj_mat_location = glGetUniformLocation(shaderProgramID, "proj");
 
 	// Root of the Hierarchy
 	mat4 identity_matrix = identity_mat4();
 	view = identity_matrix;
-	persp_proj = perspective(45.0f, (float)width / (float)height, 0.1f, 1000.0f);
+	persp_proj = perspective(perspective_fovy, (float)width / (float)height, 0.1f, 1000.0f);
 	model = identity_mat4();
 	model = scale(model, vec3(scale_x, scale_y, scale_z));
 	model = rotate_x_deg(model, rotate_x);
 	model = rotate_y_deg(model, 180);
 	model = rotate_y_deg(model, rotate_y);
 	model = rotate_z_deg(model, rotate_z);
-
 	model = translate(model, vec3(0.0f, 1.4f, 10.0f));
 	model = translate(model, vec3(translate_x, translate_y, translate_z));
 
@@ -116,10 +113,7 @@ void display() {
 	glDrawArrays(GL_TRIANGLES, 0, spider.mesh_data.mPointCount);
 
 	glBindVertexArray(leg.vao);
-
-	
 	mat4 legArray[8 * sizeof(mat4)];
-
 	vec3 leg_scaling_factor = vec3(0.6, 0.6, 0.6);
 
 	legArray[0] = scale(identity_matrix, leg_scaling_factor);
@@ -210,22 +204,22 @@ void updateScene() {
 
 void init()
 {
-	shaderProgramID = Shaders::CompileShaders();
+	GLuint shaderProgramID = Shaders::CompileShaders();
+	glUseProgram(shaderProgramID);
+	//Declare your uniform variables that will be used in your shader
+	matrix_location = glGetUniformLocation(shaderProgramID, "model");
+	view_mat_location = glGetUniformLocation(shaderProgramID, "view");
+	proj_mat_location = glGetUniformLocation(shaderProgramID, "proj");
 
-	glGenVertexArrays(1, &spider.vao);
-	spider.generateObjectBufferMesh(shaderProgramID);
-
-	glGenVertexArrays(1, &leg.vao);
-	leg.generateObjectBufferMesh(shaderProgramID);
-
-	glGenVertexArrays(1, &tile.vao);
-	tile.generateObjectBufferMesh(shaderProgramID);
-	
+	spider.generateVAO(shaderProgramID);
+	leg.generateVAO(shaderProgramID);
+	tile.generateVAO(shaderProgramID);
 	model = identity_mat4();
 }
 
 void mouseMoved(int newMouseX, int newMouseY) {
 	if (mouseInput) {
+		printf("MOUSE MOVED - Rotate camera. \n");
 		camera.rotate((GLfloat)newMouseX - width / 2, 0, 0);
 		glutWarpPointer(width / 2, height / 2);
 	}
@@ -234,7 +228,7 @@ void mouseMoved(int newMouseX, int newMouseY) {
 void keypress(unsigned char key, int x, int y) {
 	switch (key) {
 	case '`':
-		printf("`Reset model ");
+		printf("PRESSED ` - Reset model.\n");
 		rotate_x = 0.0f;
 		rotate_y = 0.0f;
 		rotate_z = 0.0f;
@@ -246,146 +240,142 @@ void keypress(unsigned char key, int x, int y) {
 		scale_z = 1.0f;
 		break;
 	case '1':
-		printf("Rotate around x-axis ");
+		printf("PRESSED 1 - Rotate spider forwards.\n");
 		rotate_x += rotate_increment;
 		rotate_x = fmodf(rotate_x, 360.0f);
-		printf("%f\n", rotate_x);
 		break;
 	case '!':
-		printf("Rotate backwards around x-axis ");
+		printf("PRESSED SHIFT 1 - Rotate spider backwards. \n");
 		rotate_x -= rotate_increment;
 		rotate_x = fmodf(rotate_x, 360.0f);
-		printf("%f\n", rotate_x);
 		break;
 	case '2':
-		printf("Rotate around y-axis ");
+		printf("PRESSED 2 - Rotate spider left. \n");
 		rotate_y += rotate_increment;
 		rotate_y = fmodf(rotate_y, 360.0f);
-		printf("%f\n", rotate_y);
 		break;
 	case '"':
-		printf("Rotate backwards around y-axis ");
+		printf("PRESSED SHIFT 2 - Rotate spider right. \n");
 		rotate_y -= rotate_increment;
 		rotate_y = fmodf(rotate_y, 360.0f);
-		printf("%f\n", rotate_y);
 		break;
 	case '3':
-		printf("Rotate around z-axis ");
+		printf("PRESSED 3 - Rotate spider clockwise. \n");
 		rotate_z += rotate_increment;
 		rotate_z = fmodf(rotate_z, 360.0f);
-		printf("%f\n", rotate_z);
 		break;
 	case '£':
 	case 163:	// the above case does not always work, so use the ascii number
-		printf("Rotate backwards around z-axis ");
+		printf("PRESSED SHIFT 3 - Rotate spider counter-clockwise. \n");
 		rotate_z -= rotate_increment;
 		rotate_z = fmodf(rotate_z, 360.0f);
-		printf("%f\n", rotate_z);
 		break;
 	case '4':
-		printf("Translate in the x-axis ");
+		printf("PRESSED 4 - Translate spider positively on x-axis. \n");
 		translate_x += translate_increment;
-		printf("%f\n", translate_x);
 		break;
 	case '$':
-		printf("Translate backwards in the x-axis ");
+		printf("PRESSED SHIFT 4 - Translate spider negatively on x-axis. \n");
 		translate_x -= translate_increment;
-		printf("%f\n", translate_x);
 		break;
 	case '5':
-		printf("Translate in the y-axis ");
+		printf("PRESSED 5 - Translate spider positively on y-axis. \n");
 		translate_y += translate_increment;
-		printf("%f\n", translate_y);
 		break;
 	case '%':
-		printf("Translate backwards in the y-axis ");
+		printf("PRESSED SHIFT 5 - Translate spider negatively on y-axis. \n");
 		translate_y -= translate_increment;
-		printf("%f\n", translate_y);
 		break;
 	case '6':
-		printf("Translate in the z-axis ");
+		printf("PRESSED 6 - Translate spider positively on z-axis. \n");
 		translate_z += translate_increment;
-		printf("%f\n", translate_z);
 		break;
 	case '^':
-		printf("Translate backwards in the z-axis ");
+		printf("PRESSED 6 - Translate spider negatviely on z-axis. \n");
 		translate_z -= translate_increment;
-		printf("%f\n", translate_z);
 		break;
 	case '7':
-		printf("Scale positively in the x-axis");
+		printf("PRESSED 7 - Increase spider width. \n");
 		scale_x *= scale_increment;
-		printf("%f\n", scale_x);
 		break;
 	case '&':
-		printf("Scale negatively in the x-axis");
+		printf("PRESSED SHIFT 7 - Decrease spider width. \n");
 		scale_x /= scale_increment;
-		printf("%f\n", scale_x);
 		break;
 	case '8':
-		printf("Scale positively in the y-axis ");
+		printf("PRESSED 8 - Increase spider height. \n");
 		scale_y *= scale_increment;
-		printf("%f\n", scale_y);
 		break;
 	case '*':
-		printf("Scale negatively in the y-axis");
+		printf("PRESSED SHIFT 8 - Decrease spider height. \n");
 		scale_y /= scale_increment;
-		printf("%f\n", scale_y);
 		break;
 	case '9':
-		printf("Scale in the z-axis\n");
+		printf("PRESSED 9 - Increase spider depth. \n");
 		scale_z *= scale_increment;
-		printf("%f\n", scale_z);
 		break;
 	case '(':
-		printf("Scale negatively in the z-axis");
+		printf("PRESSED SHIFT 9 - Decrease spider depth. \n");
 		scale_z /= scale_increment;
-		printf("%f\n", scale_z);
 		break;
 	case '0':
-		printf("Scale uniformly\n");
+		printf("PRESSED 0 - Increase spider size uniformly. \n");
 		scale_x *= scale_increment;
 		scale_y *= scale_increment;
 		scale_z *= scale_increment;
-		printf("%f, %f, %f\n", scale_x, scale_y, scale_z);
 		break;
 	case ')':
-		printf("Scale uniformly\n");
+		printf("PRESSED SHIFT 0 - Decrease spider size uniformly. \n");
 		scale_x /= scale_increment;
 		scale_y /= scale_increment;
 		scale_z /= scale_increment;
-		printf("%f, %f, %f\n", scale_x, scale_y, scale_z);
 		break;
 	case 'W':
 	case 'w':
-		printf("Move camera forward ");
+		printf("PRESSED W - Walk forward.\n");
 		camera.move(translate_increment, 0.0f, 0.0f);
 		break;
 	case 'A':
 	case 'a':
-		printf("Move camera left");
+		printf("PRESSED A - Walk left.\n");
 		camera.move(0.0f, -translate_increment, 0.0f);
 		break;
 	case 'S':
 	case 's':
-		printf("Move camera backward");
+		printf("PRESSED S - Walk backward.\n");
 		camera.move(-translate_increment, 0.0f, 0.0f);
 		break;
 	case 'D':
 	case 'd':
-		printf("Move camera right");
+		printf("PRESSED D - Walk right.\n");
 		camera.move(0.0f, translate_increment, 0.0f);
 		break;
 	case 'E':
 	case 'e':
+		printf("PRESSED E - Toggled animation. \n");
 		animation = !animation;
 		break;
 	case 'm':
 	case 'M':
+		printf("PRESSED M - Toggled mouse input / mouse binding. \n");
 		mouseInput = !mouseInput;
+		break;
+	case 'p':
+	case 'P':
+		printf("Switched perspective FOV. \n");
+		if (perspective_fovy == 30.0f) {
+			perspective_fovy = 45.0f;
+		}
+		else if (perspective_fovy == 45.0f) {
+			perspective_fovy = 60.0f;
+		}
+		else {
+			perspective_fovy = 30.0f;
+		}
 		break;
 	case 'Q':
 	case 'q':
+		printf("PRESSED Q - QUIT. \n");
 		glutLeaveMainLoop();
 		break;		
 	}

@@ -16,7 +16,7 @@
 #include "maths_funcs.h"
 class Shaders
 {
-public:
+	private:
 	static char* readShaderSource(const char* shaderFile) {
 		FILE* fp;
 		fopen_s(&fp, shaderFile, "rb");
@@ -71,6 +71,7 @@ public:
 		glAttachShader(ShaderProgram, ShaderObj);
 	}
 
+public:
 	static GLuint CompileShaders()
 	{
 		//Start the process of setting up our shaders by creating a program ID

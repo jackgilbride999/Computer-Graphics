@@ -34,10 +34,9 @@ public:
 	unsigned int vao;
 	ModelData mesh_data;
 	Model(const char* file_name);
-	void generateObjectBufferMesh(GLuint shaderProgramID);
+	void generateVAO(GLuint shaderProgramID);
 
 private: 
-	GLuint loc1, loc2, loc3;
 	ModelData load_mesh(const char* file_name);
 };
 
