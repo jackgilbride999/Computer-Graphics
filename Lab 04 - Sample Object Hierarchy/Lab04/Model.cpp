@@ -60,7 +60,7 @@ void Model::generateVAO(GLuint shaderProgramID) {
 	//Note: you may get an error "vector subscript out of range" if you are using this code for a mesh that doesnt have positions and normals
 	//Might be an idea to do a check for that before generating and binding the buffer.
 						
-	glGenVertexArrays(1, &vao);																								//unsigned int vao = 0;																								// a pointer to the vao
+	glGenVertexArrays(1, &vao);																							// unsigned int vao = 0;																								// a pointer to the vao
 	glBindVertexArray(vao);																								// bind the vao
 
 	unsigned int vp_vbo = 0;																							// a pointer to vertex position vbo
@@ -68,25 +68,25 @@ void Model::generateVAO(GLuint shaderProgramID) {
 	glBindBuffer(GL_ARRAY_BUFFER, vp_vbo);																				// bind a buffer to the vertex position vbo
 	glBufferData(GL_ARRAY_BUFFER, mesh_data.mPointCount * sizeof(vec3), &mesh_data.mVertices[0], GL_STATIC_DRAW);		// load data to the vertex position vbo
 
-	GLuint vertex_position_location_in_shader = glGetAttribLocation(shaderProgramID, "vertex_position");														// a pointer to vertex position in the shader
-	glEnableVertexAttribArray(vertex_position_location_in_shader);																					// point at the vertex position in the shader
-	glVertexAttribPointer(vertex_position_location_in_shader, 3, GL_FLOAT, GL_FALSE, 0, NULL);														// store vertex position location in the vao
+	GLuint vertex_position_location_in_shader = glGetAttribLocation(shaderProgramID, "vertex_position");				// a pointer to vertex position in the shader
+	glEnableVertexAttribArray(vertex_position_location_in_shader);														// point at the vertex position in the shader
+	glVertexAttribPointer(vertex_position_location_in_shader, 3, GL_FLOAT, GL_FALSE, 0, NULL);							// store vertex position location in the vao
 
 	unsigned int vn_vbo = 0;																							// a pointer to the vertex normal vbo
 	glGenBuffers(1, &vn_vbo);																							// generate buffer for the vertex normal vbo
 	glBindBuffer(GL_ARRAY_BUFFER, vn_vbo);																				// bind a buffer to the vertex normal vbo
 	glBufferData(GL_ARRAY_BUFFER, mesh_data.mPointCount * sizeof(vec3), &mesh_data.mNormals[0], GL_STATIC_DRAW);		// load data to the vertex normal vbo
 
-	GLuint vertex_normal_location_in_shader = glGetAttribLocation(shaderProgramID, "vertex_normal");														// a pointer to vertex normal in the shader
-	glEnableVertexAttribArray(vertex_normal_location_in_shader);																					// point at the vertex normal in the shader
-	glVertexAttribPointer(vertex_normal_location_in_shader, 3, GL_FLOAT, GL_FALSE, 0, NULL);														// store vertex normal location in the vao
+	GLuint vertex_normal_location_in_shader = glGetAttribLocation(shaderProgramID, "vertex_normal");					// a pointer to vertex normal in the shader
+	glEnableVertexAttribArray(vertex_normal_location_in_shader);														// point at the vertex normal in the shader
+	glVertexAttribPointer(vertex_normal_location_in_shader, 3, GL_FLOAT, GL_FALSE, 0, NULL);							// store vertex normal location in the vao
 
 	unsigned int vt_vbo = 0;
 	glGenBuffers(1, &vt_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vt_vbo);
 	glBufferData(GL_ARRAY_BUFFER, mesh_data.mPointCount * sizeof(vec3), &mesh_data.mTextureCoords[0], GL_STATIC_DRAW);
 
-	GLuint vertex_texture_location_in_shader = glGetAttribLocation(shaderProgramID, "vertex_texture");														// a pointer to the vertex texture in the shader
+	GLuint vertex_texture_location_in_shader = glGetAttribLocation(shaderProgramID, "vertex_texture");					// a pointer to the vertex texture in the shader
 	glEnableVertexAttribArray(vertex_texture_location_in_shader);
 	glVertexAttribPointer(vertex_texture_location_in_shader, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 }

@@ -1,0 +1,26 @@
+#version 330
+
+out vec4 FragColor;
+
+in vec3 tnorm;					// eye space representation of the normal
+in vec3 vertex_inWorldSpace;	// world space representation of the vertex
+
+vec3 light_color = vec3(0.5, 0.5, 0.5); // use the same color for ambient and diffuse but these can be separated
+
+uniform vec3 light_position;
+uniform vec3 object_color;
+
+void main(){
+	// ambient
+	float ambientStrength = 0.1;
+	vec3 ambient = ambientStrength * light_color;
+
+	// diffuse
+	vec3 norm = normalize(tnorm);
+	vec3 lightDir = normalize(light_position - vertex_inWorldSpace);
+	float diff = max(dot(norm, lightDir), 0.0);
+	vec3 diffuse = diff * light_color;
+
+	vec3 result = (ambient + diffuse) * object_color;
+	FragColor = vec4(result, 1.0);
+}
