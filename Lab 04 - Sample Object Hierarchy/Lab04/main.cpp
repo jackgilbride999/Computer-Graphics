@@ -116,7 +116,7 @@ void display() {
 
 	vec3 spider_color = vec3(1.0, 0.0, 0.0);
 	vec3 leg_color = vec3(0.5, 0.5, 0.5);
-	vec3 light1_position = vec3(0.0, 10, 10);
+	vec3 light1_position = vec3(10, 0, 10);
 
 	// update uniforms & draw
 	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
