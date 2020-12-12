@@ -61,5 +61,8 @@
     <Text Include="..\diffuseFragmentShader.txt">
       <Filter>Shader</Filter>
     </Text>
+    <Text Include="..\specularFragmentShader.txt">
+      <Filter>Shader</Filter>
+    </Text>
   </ItemGroup>
 </Project>

@@ -97,6 +97,7 @@
     <Text Include="..\diffuseFragmentShader.txt" />
     <Text Include="..\simpleFragmentShader.txt" />
     <Text Include="..\simpleVertexShader.txt" />
+    <Text Include="..\specularFragmentShader.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

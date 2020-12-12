@@ -72,7 +72,7 @@ class Shaders
 	}
 
 public:
-	static GLuint CompileShaders()
+	static GLuint CompileShaders(std::string vertexShaderName, std::string fragmentShaderName)
 	{
 		//Start the process of setting up our shaders by creating a program ID
 		//Note: we will link all the shaders together into this ID
@@ -85,8 +85,8 @@ public:
 		}
 
 		// Create two shader objects, one for the vertex, and one for the fragment shader
-		AddShader(shaderProgramID, "advancedVertexShader.txt", GL_VERTEX_SHADER);
-		AddShader(shaderProgramID, "diffuseFragmentShader.txt", GL_FRAGMENT_SHADER);
+		AddShader(shaderProgramID, vertexShaderName.c_str(), GL_VERTEX_SHADER);
+		AddShader(shaderProgramID, fragmentShaderName.c_str(), GL_FRAGMENT_SHADER);
 
 		GLint Success = 0;
 		GLchar ErrorLog[1024] = { '\0' };

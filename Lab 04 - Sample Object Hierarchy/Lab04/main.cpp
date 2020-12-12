@@ -76,6 +76,9 @@ int proj_mat_location;
 int light_position_location;
 int object_color_location;
 
+int view_pos_location;
+int specular_coef_location;
+
 mat4 view;
 mat4 persp_proj;
 mat4 model;
@@ -108,7 +111,8 @@ void display() {
 		camera.up
 	);
 
-
+	glUniform3fv(view_pos_location, 1, (GLfloat *)&camera.position);
+	glUniform1f(specular_coef_location, 100);
 
 	vec3 spider_color = vec3(1.0, 0.0, 0.0);
 	vec3 leg_color = vec3(0.5, 0.5, 0.5);
@@ -221,18 +225,36 @@ void updateScene() {
 
 void init()
 {
-	GLuint shaderProgramID = Shaders::CompileShaders();
-	glUseProgram(shaderProgramID);
+	GLuint diffuseShaderProgramID = Shaders::CompileShaders("advancedVertexShader.txt", "diffuseFragmentShader.txt");
+	GLuint specularShaderProgramID = Shaders::CompileShaders("advancedVertexShader.txt", "specularFragmentShader.txt");
+	glUseProgram(diffuseShaderProgramID);
 	//Declare your uniform variables that will be used in your shader
-	matrix_location = glGetUniformLocation(shaderProgramID, "model");
-	view_mat_location = glGetUniformLocation(shaderProgramID, "view");
-	proj_mat_location = glGetUniformLocation(shaderProgramID, "proj");
-	light_position_location = glGetUniformLocation(shaderProgramID, "light_position");
-	object_color_location = glGetUniformLocation(shaderProgramID, "object_color");
+	matrix_location = glGetUniformLocation(diffuseShaderProgramID, "model");
+	view_mat_location = glGetUniformLocation(diffuseShaderProgramID, "view");
+	proj_mat_location = glGetUniformLocation(diffuseShaderProgramID, "proj");
+	light_position_location = glGetUniformLocation(diffuseShaderProgramID, "light_position");
+	object_color_location = glGetUniformLocation(diffuseShaderProgramID, "object_color");
 
-	spider.generateVAO(shaderProgramID);
-	leg.generateVAO(shaderProgramID);
-	tile.generateVAO(shaderProgramID);
+	spider.generateVAO(diffuseShaderProgramID);
+	leg.generateVAO(diffuseShaderProgramID);
+	tile.generateVAO(diffuseShaderProgramID);
+	model = identity_mat4();
+
+	//
+	glUseProgram(specularShaderProgramID);
+	//Declare your uniform variables that will be used in your shader
+	matrix_location = glGetUniformLocation(specularShaderProgramID, "model");
+	view_mat_location = glGetUniformLocation(specularShaderProgramID, "view");
+	proj_mat_location = glGetUniformLocation(specularShaderProgramID, "proj");
+	light_position_location = glGetUniformLocation(specularShaderProgramID, "light_position");
+	object_color_location = glGetUniformLocation(specularShaderProgramID, "object_color");
+
+	view_pos_location = glGetUniformLocation(specularShaderProgramID, "view_pos");
+	specular_coef_location = glGetUniformLocation(specularShaderProgramID, "specular_coef");
+
+	spider.generateVAO(specularShaderProgramID);
+	leg.generateVAO(specularShaderProgramID);
+	tile.generateVAO(specularShaderProgramID);
 	model = identity_mat4();
 }
 
