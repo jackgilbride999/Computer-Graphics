@@ -6,7 +6,7 @@ in vec3 tnorm;					// eye space representation of the normal
 in vec3 vertex_inWorldSpace;	// world space representation of the vertex
 
 vec3 ambient_light_color = vec3(0.5, 0.5, 0.5);
-vec3 diffuse_light_color = vec3(0.5, 0.5, 0.5);
+vec3 diffuse_light_color = vec3(1, 1, 1);
 vec3 spec_light_color = vec3(1.0, 1.0, 1.0);  
 
 uniform vec3 light_position;
