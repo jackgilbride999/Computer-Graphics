@@ -55,10 +55,10 @@
     <Text Include="..\simpleVertexShader.txt">
       <Filter>Shader</Filter>
     </Text>
-    <Text Include="advancedVertexShader.txt">
+    <Text Include="..\advancedVertexShader.txt">
       <Filter>Shader</Filter>
     </Text>
-    <Text Include="diffuseFragmentShader.txt">
+    <Text Include="..\diffuseFragmentShader.txt">
       <Filter>Shader</Filter>
     </Text>
   </ItemGroup>
