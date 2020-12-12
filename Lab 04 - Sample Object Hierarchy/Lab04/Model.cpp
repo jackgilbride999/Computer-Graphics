@@ -86,7 +86,4 @@ void Model::generateVAO(GLuint shaderProgramID) {
 	glBindBuffer(GL_ARRAY_BUFFER, vt_vbo);
 	glBufferData(GL_ARRAY_BUFFER, mesh_data.mPointCount * sizeof(vec3), &mesh_data.mTextureCoords[0], GL_STATIC_DRAW);
 
-	GLuint vertex_texture_location_in_shader = glGetAttribLocation(shaderProgramID, "vertex_texture");					// a pointer to the vertex texture in the shader
-	glEnableVertexAttribArray(vertex_texture_location_in_shader);
-	glVertexAttribPointer(vertex_texture_location_in_shader, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 }

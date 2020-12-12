@@ -73,16 +73,20 @@ int matrix_location;
 int view_mat_location;
 int proj_mat_location;
 
+int light_position_location;
+int object_color_location;
+
 mat4 view;
 mat4 persp_proj;
 mat4 model;
+
 
 
 void display() {
 	// tell GL to only draw onto a pixel if the shape is closer to the viewer
 	glEnable(GL_DEPTH_TEST); // enable depth-testing
 	glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
-	glClearColor(1.0f, 0.5f, 0.5f, 1.0f);
+	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Root of the Hierarchy
@@ -104,14 +108,26 @@ void display() {
 		camera.up
 	);
 
+
+
+	vec3 spider_color = vec3(1.0, 0.0, 0.0);
+	vec3 leg_color = vec3(0.5, 0.5, 0.5);
+	vec3 light1_position = vec3(0.0, 10, 10);
+
 	// update uniforms & draw
 	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
 	glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
 	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, model.m);
+	glUniform3fv(light_position_location, 1, (GLfloat*)&light1_position);
 
+
+
+
+	glUniform3fv(object_color_location, 1, (GLfloat*)&spider_color);
 	glBindVertexArray(spider.vao);
 	glDrawArrays(GL_TRIANGLES, 0, spider.mesh_data.mPointCount);
 
+	glUniform3fv(object_color_location, 1, (GLfloat*)&leg_color);
 	glBindVertexArray(leg.vao);
 	mat4 legArray[8 * sizeof(mat4)];
 	vec3 leg_scaling_factor = vec3(0.6, 0.6, 0.6);
@@ -159,12 +175,13 @@ void display() {
 		glDrawArrays(GL_TRIANGLES, 0, leg.mesh_data.mPointCount);
 	}
 
+	
 	glBindVertexArray(tile.vao);
 	mat4 floor_matrix = identity_matrix;
 	floor_matrix = scale(floor_matrix, vec3(100, 0, 100));
 	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, floor_matrix.m);
 	glDrawArrays(GL_TRIANGLES, 0, tile.mesh_data.mPointCount);
-
+	
 
 
 	glutSwapBuffers();
@@ -210,6 +227,8 @@ void init()
 	matrix_location = glGetUniformLocation(shaderProgramID, "model");
 	view_mat_location = glGetUniformLocation(shaderProgramID, "view");
 	proj_mat_location = glGetUniformLocation(shaderProgramID, "proj");
+	light_position_location = glGetUniformLocation(shaderProgramID, "light_position");
+	object_color_location = glGetUniformLocation(shaderProgramID, "object_color");
 
 	spider.generateVAO(shaderProgramID);
 	leg.generateVAO(shaderProgramID);
