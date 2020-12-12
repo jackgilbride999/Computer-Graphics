@@ -1,4 +1,6 @@
 #include "Model.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 Model::Model(const char* file_name) {
 	mesh_data = load_mesh(file_name);
@@ -81,9 +83,35 @@ void Model::generateVAO(GLuint shaderProgramID) {
 	glEnableVertexAttribArray(vertex_normal_location_in_shader);														// point at the vertex normal in the shader
 	glVertexAttribPointer(vertex_normal_location_in_shader, 3, GL_FLOAT, GL_FALSE, 0, NULL);							// store vertex normal location in the vao
 
+
+	
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	
+	int width, height, nrChannels;
+	unsigned char* data = stbi_load("cement_texture.jpg", &width, &height, &nrChannels, 0);
+	if (data) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else {
+		std::cout << "Failed to load texture " << std::endl;
+	}
+	stbi_image_free(data);
+
+
+	
 	unsigned int vt_vbo = 0;
 	glGenBuffers(1, &vt_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vt_vbo);
-	glBufferData(GL_ARRAY_BUFFER, mesh_data.mPointCount * sizeof(vec3), &mesh_data.mTextureCoords[0], GL_STATIC_DRAW);
-
+	glBufferData(GL_ARRAY_BUFFER, mesh_data.mPointCount * sizeof(vec2), &mesh_data.mTextureCoords[0], GL_STATIC_DRAW);
+	
+	GLuint vertex_texture_location_in_shader = glGetAttribLocation(shaderProgramID, "vertex_texture");
+	glDisableVertexAttribArray(vertex_texture_location_in_shader);
+	glVertexAttribPointer(vertex_texture_location_in_shader, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+	
 }

@@ -83,6 +83,8 @@ mat4 view;
 mat4 persp_proj;
 mat4 model;
 
+//enum shader_types {AMBIENT, DIFFUSE, SPECULAR, TEXTURE};
+
 
 
 void display() {
@@ -123,8 +125,6 @@ void display() {
 	glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
 	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, model.m);
 	glUniform3fv(light_position_location, 1, (GLfloat*)&light1_position);
-
-
 
 
 	glUniform3fv(object_color_location, 1, (GLfloat*)&spider_color);
@@ -227,8 +227,10 @@ void init()
 {
 	GLuint diffuseShaderProgramID = Shaders::CompileShaders("advancedVertexShader.txt", "diffuseFragmentShader.txt");
 	GLuint specularShaderProgramID = Shaders::CompileShaders("advancedVertexShader.txt", "specularFragmentShader.txt");
+	GLuint textureShaderProgramID = Shaders::CompileShaders("textureVertexShader.txt", "textureFragmentShader.txt");
 	glUseProgram(diffuseShaderProgramID);
 	//Declare your uniform variables that will be used in your shader
+	/*
 	matrix_location = glGetUniformLocation(diffuseShaderProgramID, "model");
 	view_mat_location = glGetUniformLocation(diffuseShaderProgramID, "view");
 	proj_mat_location = glGetUniformLocation(diffuseShaderProgramID, "proj");
@@ -240,9 +242,7 @@ void init()
 	tile.generateVAO(diffuseShaderProgramID);
 	model = identity_mat4();
 
-	//
 	glUseProgram(specularShaderProgramID);
-	//Declare your uniform variables that will be used in your shader
 	matrix_location = glGetUniformLocation(specularShaderProgramID, "model");
 	view_mat_location = glGetUniformLocation(specularShaderProgramID, "view");
 	proj_mat_location = glGetUniformLocation(specularShaderProgramID, "proj");
@@ -251,10 +251,16 @@ void init()
 
 	view_pos_location = glGetUniformLocation(specularShaderProgramID, "view_pos");
 	specular_coef_location = glGetUniformLocation(specularShaderProgramID, "specular_coef");
+	*/
+	glUseProgram(textureShaderProgramID);
+	matrix_location = glGetUniformLocation(textureShaderProgramID, "model");
+	view_mat_location = glGetUniformLocation(textureShaderProgramID, "view");
+	proj_mat_location = glGetUniformLocation(textureShaderProgramID, "proj");
 
-	spider.generateVAO(specularShaderProgramID);
-	leg.generateVAO(specularShaderProgramID);
-	tile.generateVAO(specularShaderProgramID);
+
+	spider.generateVAO(textureShaderProgramID);
+	leg.generateVAO(textureShaderProgramID);
+	tile.generateVAO(textureShaderProgramID);
 	model = identity_mat4();
 }
 

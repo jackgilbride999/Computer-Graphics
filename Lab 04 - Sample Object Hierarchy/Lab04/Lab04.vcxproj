@@ -91,6 +91,7 @@
     <ClInclude Include="maths_funcs.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="Shaders.h" />
+    <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\advancedVertexShader.txt" />
@@ -98,6 +99,8 @@
     <Text Include="..\simpleFragmentShader.txt" />
     <Text Include="..\simpleVertexShader.txt" />
     <Text Include="..\specularFragmentShader.txt" />
+    <Text Include="..\textureFragmentShader.txt" />
+    <Text Include="..\textureVertexShader.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
