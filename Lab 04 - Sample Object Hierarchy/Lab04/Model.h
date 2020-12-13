@@ -19,6 +19,8 @@
 
 // Project includes
 #include "maths_funcs.h"
+#include "Shaders.h"
+
 
 struct ModelData
 {
@@ -33,8 +35,12 @@ class Model
 public:
 	unsigned int vao;
 	ModelData mesh_data;
-	Model(const char* file_name);
-	void generateVAO(GLuint shaderProgramID);
+	mat4 model_matrix;
+	Shaders* shaders;
+	vec3 color;
+	const char* image_name;
+	Model(const char* mesh_name, Shaders* shaders, vec3 color, const char* image_name);
+	void generateVAO();
 
 private: 
 	ModelData load_mesh(const char* file_name);

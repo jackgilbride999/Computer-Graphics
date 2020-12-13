@@ -14,9 +14,28 @@
 
 // Project includes
 #include "maths_funcs.h"
+
+enum shader_types { AMBIENT, DIFFUSE, SPECULAR, TEXTURE };
+
 class Shaders
 {
-	private:
+public :
+	GLuint shaderProgramID;
+	unsigned int shaderType;
+	// locations of uniforms in all shaders:
+	GLuint uniform_location_model;
+	GLuint uniform_location_view;
+	GLuint uniform_location_proj;
+	// locations of uniforms in diffuse & specular shaders:
+	GLuint uniform_location_light_position;
+	GLuint uniform_location_object_location;
+	// locations of uniforms in specular shaders:
+	GLuint uniform_location_view_pos;
+	GLuint uniform_location_specular_coef;
+
+	Shaders(unsigned int shaderType);
+
+private:
 	static char* readShaderSource(const char* shaderFile) {
 		FILE* fp;
 		fopen_s(&fp, shaderFile, "rb");
@@ -71,11 +90,11 @@ class Shaders
 		glAttachShader(ShaderProgram, ShaderObj);
 	}
 
-public:
 	static GLuint CompileShaders(std::string vertexShaderName, std::string fragmentShaderName)
 	{
 		//Start the process of setting up our shaders by creating a program ID
 		//Note: we will link all the shaders together into this ID
+		fprintf(stderr, "compileshaders called");
 		GLuint shaderProgramID = glCreateProgram();
 		if (shaderProgramID == 0) {
 			std::cerr << "Error creating shader program..." << std::endl;
