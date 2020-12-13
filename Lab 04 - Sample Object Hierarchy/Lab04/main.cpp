@@ -83,6 +83,10 @@ mat4 view;
 mat4 persp_proj;
 mat4 model;
 
+GLuint diffuseShaderProgramID;
+GLuint specularShaderProgramID;
+GLuint textureShaderProgramID;
+
 //enum shader_types {AMBIENT, DIFFUSE, SPECULAR, TEXTURE};
 
 
@@ -94,7 +98,14 @@ void display() {
 	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
+	glUseProgram(specularShaderProgramID);
+	matrix_location = glGetUniformLocation(specularShaderProgramID, "model");
+	view_mat_location = glGetUniformLocation(specularShaderProgramID, "view");
+	proj_mat_location = glGetUniformLocation(specularShaderProgramID, "proj");
+	light_position_location = glGetUniformLocation(specularShaderProgramID, "light_position");
+	object_color_location = glGetUniformLocation(specularShaderProgramID, "object_color");
+	view_pos_location = glGetUniformLocation(specularShaderProgramID, "view_pos");
+	specular_coef_location = glGetUniformLocation(specularShaderProgramID, "specular_coef");
 	// Root of the Hierarchy
 	mat4 identity_matrix = identity_mat4();
 	view = identity_matrix;
@@ -119,18 +130,24 @@ void display() {
 
 	vec3 spider_color = vec3(1.0, 0.0, 0.0);
 	vec3 leg_color = vec3(0.5, 0.5, 0.5);
-	vec3 light1_position = vec3(10, 0, 10);
+	vec3 floor_color = vec3(1.0, 0.0, 0.0);
+	vec3 light1_position = vec3(10, 5, 10);
 
 	// update uniforms & draw
 	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
 	glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
 	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, model.m);
 	glUniform3fv(light_position_location, 1, (GLfloat*)&light1_position);
-
-
 	glUniform3fv(object_color_location, 1, (GLfloat*)&spider_color);
 	glBindVertexArray(spider.vao);
 	glDrawArrays(GL_TRIANGLES, 0, spider.mesh_data.mPointCount);
+
+
+
+	glUseProgram(textureShaderProgramID);
+	matrix_location = glGetUniformLocation(textureShaderProgramID, "model");
+	view_mat_location = glGetUniformLocation(textureShaderProgramID, "view");
+	proj_mat_location = glGetUniformLocation(textureShaderProgramID, "proj");
 
 	glUniform3fv(object_color_location, 1, (GLfloat*)&leg_color);
 	glBindVertexArray(leg.vao);
@@ -176,17 +193,31 @@ void display() {
 
 	for (int i = 0; i < 8; i++) {
 		legArray[i] = model * legArray[i];
+		glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
+		glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
 		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, legArray[i].m);
 		glDrawArrays(GL_TRIANGLES, 0, leg.mesh_data.mPointCount);
 	}
 
+
+
+	glUseProgram(diffuseShaderProgramID);
+	matrix_location = glGetUniformLocation(diffuseShaderProgramID, "model");
+	view_mat_location = glGetUniformLocation(diffuseShaderProgramID, "view");
+	proj_mat_location = glGetUniformLocation(diffuseShaderProgramID, "proj");
+	light_position_location = glGetUniformLocation(diffuseShaderProgramID, "light_position");
+	object_color_location = glGetUniformLocation(diffuseShaderProgramID, "object_color");
 	
 	glBindVertexArray(tile.vao);
 	mat4 floor_matrix = identity_matrix;
 	floor_matrix = scale(floor_matrix, vec3(100, 0, 100));
+
+	glUniform3fv(light_position_location, 1, (GLfloat*)&light1_position);
+	glUniform3fv(object_color_location, 1, (GLfloat*)&floor_color);
+	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
+	glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
 	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, floor_matrix.m);
 	glDrawArrays(GL_TRIANGLES, 0, tile.mesh_data.mPointCount);
-	
 
 
 	glutSwapBuffers();
@@ -226,42 +257,24 @@ void updateScene() {
 
 void init()
 {
-	GLuint diffuseShaderProgramID = Shaders::CompileShaders("advancedVertexShader.txt", "diffuseFragmentShader.txt");
-	GLuint specularShaderProgramID = Shaders::CompileShaders("advancedVertexShader.txt", "specularFragmentShader.txt");
-	GLuint textureShaderProgramID = Shaders::CompileShaders("textureVertexShader.txt", "textureFragmentShader.txt");
-	glUseProgram(diffuseShaderProgramID);
-	//Declare your uniform variables that will be used in your shader
-	/*
-	matrix_location = glGetUniformLocation(diffuseShaderProgramID, "model");
-	view_mat_location = glGetUniformLocation(diffuseShaderProgramID, "view");
-	proj_mat_location = glGetUniformLocation(diffuseShaderProgramID, "proj");
-	light_position_location = glGetUniformLocation(diffuseShaderProgramID, "light_position");
-	object_color_location = glGetUniformLocation(diffuseShaderProgramID, "object_color");
+	diffuseShaderProgramID = Shaders::CompileShaders("advancedVertexShader.txt", "diffuseFragmentShader.txt");
+	specularShaderProgramID = Shaders::CompileShaders("advancedVertexShader.txt", "specularFragmentShader.txt");
+	textureShaderProgramID = Shaders::CompileShaders("textureVertexShader.txt", "textureFragmentShader.txt");
+/*
 
 	spider.generateVAO(diffuseShaderProgramID);
 	leg.generateVAO(diffuseShaderProgramID);
 	tile.generateVAO(diffuseShaderProgramID);
 	model = identity_mat4();
 
-	glUseProgram(specularShaderProgramID);
-	matrix_location = glGetUniformLocation(specularShaderProgramID, "model");
-	view_mat_location = glGetUniformLocation(specularShaderProgramID, "view");
-	proj_mat_location = glGetUniformLocation(specularShaderProgramID, "proj");
-	light_position_location = glGetUniformLocation(specularShaderProgramID, "light_position");
-	object_color_location = glGetUniformLocation(specularShaderProgramID, "object_color");
 
-	view_pos_location = glGetUniformLocation(specularShaderProgramID, "view_pos");
-	specular_coef_location = glGetUniformLocation(specularShaderProgramID, "specular_coef");
 	*/
-	glUseProgram(textureShaderProgramID);
-	matrix_location = glGetUniformLocation(textureShaderProgramID, "model");
-	view_mat_location = glGetUniformLocation(textureShaderProgramID, "view");
-	proj_mat_location = glGetUniformLocation(textureShaderProgramID, "proj");
 
 
-	spider.generateVAO(textureShaderProgramID);
+
+	spider.generateVAO(specularShaderProgramID);
 	leg.generateVAO(textureShaderProgramID);
-	tile.generateVAO(textureShaderProgramID);
+	tile.generateVAO(diffuseShaderProgramID);
 	model = identity_mat4();
 }
 
