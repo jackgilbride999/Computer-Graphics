@@ -88,41 +88,19 @@ GLuint specularShaderProgramID;
 GLuint textureShaderProgramID;
 
 //enum shader_types {AMBIENT, DIFFUSE, SPECULAR, TEXTURE};
-
-
-
-void display() {
-	// tell GL to only draw onto a pixel if the shape is closer to the viewer
-	glEnable(GL_DEPTH_TEST); // enable depth-testing
-	glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
-	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// Object colors
-	vec3 spider_color = vec3(1.0, 0.0, 0.0);
-	vec3 leg_color = vec3(0.5, 0.5, 0.5);
-	vec3 floor_color = vec3(1, 1, 1);
-	vec3 light1_position = vec3(10, 5, 10);
-
+void draw_spider(vec3 spider_color, vec3 initial_coords, vec3 light1_position) {
 	// Update the root of the hierarchical spider model
 	mat4 identity_matrix = identity_mat4();
-	view = identity_matrix;
-	persp_proj = perspective(perspective_fovy, (float)width / (float)height, 0.1f, 1000.0f);
+
 	model = identity_mat4();
 	model = scale(model, vec3(scale_x, scale_y, scale_z));
 	model = rotate_x_deg(model, rotate_x);
 	model = rotate_y_deg(model, 180);
 	model = rotate_y_deg(model, rotate_y);
 	model = rotate_z_deg(model, rotate_z);
-	model = translate(model, vec3(0.0f, 1.4f, 10.0f));
+	model = translate(model, initial_coords);
 	model = translate(model, vec3(translate_x, translate_y, translate_z));
 
-	// Update the camera
-	view = look_at(
-		camera.position,
-		camera.position + camera.direction,
-		camera.up
-	);
 
 	// Activate the specular shader program and locate the uniforms
 	glUseProgram(specularShaderProgramID);
@@ -141,7 +119,7 @@ void display() {
 	glUniform3fv(light_position_location, 1, (GLfloat*)&light1_position);
 	glUniform3fv(object_color_location, 1, (GLfloat*)&spider_color);
 	glUniform3fv(view_pos_location, 1, (GLfloat*)&camera.position);
-	glUniform1f(specular_coef_location, 100);
+	glUniform1f(specular_coef_location, 200);
 	glBindVertexArray(spider.vao);
 	glDrawArrays(GL_TRIANGLES, 0, spider.mesh_data.mPointCount);
 
@@ -175,7 +153,7 @@ void display() {
 	legArray[5] = scale(identity_matrix, leg_scaling_factor);
 	legArray[5] = rotate_y_deg(legArray[5], 180);
 	legArray[5] = rotate_x_deg(legArray[5], leg_set_2_rotate_x);
-	legArray[5] = translate(legArray[5] , vec3(0.0f, 0.0f, 0.167f));
+	legArray[5] = translate(legArray[5], vec3(0.0f, 0.0f, 0.167f));
 
 	legArray[6] = scale(identity_matrix, leg_scaling_factor);
 	legArray[6] = rotate_x_deg(legArray[6], leg_set_2_rotate_x);
@@ -201,9 +179,37 @@ void display() {
 		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, legArray[i].m);
 		glDrawArrays(GL_TRIANGLES, 0, leg.mesh_data.mPointCount);
 	}
+}
+
+
+void display() {
+	// tell GL to only draw onto a pixel if the shape is closer to the viewer
+	glEnable(GL_DEPTH_TEST); // enable depth-testing
+	glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
+	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Object colors
+	vec3 spider_color = vec3(1.0, 0.0, 0.0);
+	vec3 leg_color = vec3(0.5, 0.5, 0.5);
+	vec3 floor_color = vec3(1, 1, 1);
+	vec3 light1_position = vec3(0, 1.5, 8);
+
+	persp_proj = perspective(perspective_fovy, (float)width / (float)height, 0.1f, 1000.0f);
+	// Update the camera
+	view = look_at(
+		camera.position,
+		camera.position + camera.direction,
+		camera.up
+	);
+
+	draw_spider(vec3(1, 0, 0), vec3(-8.0f, 1.4f, 10.0f), light1_position);
+	draw_spider(vec3(0, 1, 0), vec3(0.0f, 1.4f, 10.0f), light1_position);
+	draw_spider(vec3(0, 0, 1), vec3(8.0f, 1.4f, 10.0f), light1_position);
+
 	
 	// Update the matrix for the floor model
-	mat4 floor_matrix = identity_matrix;
+	mat4 floor_matrix = identity_mat4();
 	floor_matrix = scale(floor_matrix, vec3(100.0f, 1.0f, 100.0f));
 
 	// Activate the diffuse shader program and locate the uniforms
