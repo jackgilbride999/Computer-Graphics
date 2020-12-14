@@ -30,6 +30,7 @@ MESH TO LOAD
 #define SPIDER_MESH_NAME "spider.dae"
 #define LEG_MESH_NAME "leg.dae"
 #define TILE_MESH_NAME "tile.dae"
+#define LIGHT_MESH_NAME "cube.dae"
 
 /*----------------------------------------------------------------------------
 ----------------------------------------------------------------------------*/
@@ -41,6 +42,7 @@ int height = 600;
 Model spider = Model(SPIDER_MESH_NAME);
 Model leg = Model(LEG_MESH_NAME);
 Model tile = Model(TILE_MESH_NAME);
+Model light = Model(LIGHT_MESH_NAME);
 Camera camera = Camera(vec3(0.0f, 1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f));
 
 GLfloat rotate_increment = 1.0f;
@@ -68,6 +70,10 @@ boolean leg_set_2_rotate_x_increasing = false;
 
 boolean animation = false;
 boolean mouseInput = false;
+
+GLfloat light_x = 4;
+GLfloat light_y = 1;
+GLfloat light_z = 20;
 
 int matrix_location;
 int view_mat_location;
@@ -119,7 +125,7 @@ void draw_spider(vec3 spider_color, vec3 initial_coords, vec3 light1_position) {
 	glUniform3fv(light_position_location, 1, (GLfloat*)&light1_position);
 	glUniform3fv(object_color_location, 1, (GLfloat*)&spider_color);
 	glUniform3fv(view_pos_location, 1, (GLfloat*)&camera.position);
-	glUniform1f(specular_coef_location, 200);
+	glUniform1f(specular_coef_location, 50);
 	glBindVertexArray(spider.vao);
 	glDrawArrays(GL_TRIANGLES, 0, spider.mesh_data.mPointCount);
 
@@ -193,7 +199,7 @@ void display() {
 	vec3 spider_color = vec3(1.0, 0.0, 0.0);
 	vec3 leg_color = vec3(0.5, 0.5, 0.5);
 	vec3 floor_color = vec3(1, 1, 1);
-	vec3 light1_position = vec3(0, 1.5, 8);
+	vec3 light1_position = vec3(light_x, light_y, light_z);
 
 	persp_proj = perspective(perspective_fovy, (float)width / (float)height, 0.1f, 1000.0f);
 	// Update the camera
@@ -203,9 +209,35 @@ void display() {
 		camera.up
 	);
 
-	draw_spider(vec3(1, 0, 0), vec3(-8.0f, 1.4f, 10.0f), light1_position);
-	draw_spider(vec3(0, 1, 0), vec3(0.0f, 1.4f, 10.0f), light1_position);
-	draw_spider(vec3(0, 0, 1), vec3(8.0f, 1.4f, 10.0f), light1_position);
+	draw_spider(vec3(1, 0, 0), vec3(-8.0f, 1.4f, 20.0f), light1_position);
+	draw_spider(vec3(0, 1, 0), vec3(0.0f, 1.4f, 20.0f), light1_position);
+	draw_spider(vec3(0, 0, 1), vec3(8.0f, 1.4f, 20.0f), light1_position);
+
+	glUseProgram(specularShaderProgramID);
+	matrix_location = glGetUniformLocation(specularShaderProgramID, "model");
+	view_mat_location = glGetUniformLocation(specularShaderProgramID, "view");
+	proj_mat_location = glGetUniformLocation(specularShaderProgramID, "proj");
+	light_position_location = glGetUniformLocation(specularShaderProgramID, "light_position");
+	object_color_location = glGetUniformLocation(specularShaderProgramID, "object_color");
+	view_pos_location = glGetUniformLocation(specularShaderProgramID, "view_pos");
+	specular_coef_location = glGetUniformLocation(specularShaderProgramID, "specular_coef");
+
+	mat4 light_matrix = identity_mat4();
+	light_matrix = scale(light_matrix, vec3(0.1, 0.1, 0.1));
+	light_matrix = translate(light_matrix, light1_position);
+	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, light_matrix.m);
+
+	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
+	glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
+
+	glUniform3fv(light_position_location, 1, (GLfloat*)&light1_position);
+	glUniform3fv(object_color_location, 1, (GLfloat*)&vec3(1,1,1));
+	glUniform3fv(view_pos_location, 1, (GLfloat*)&camera.position);
+	glUniform1f(specular_coef_location, 200);
+
+
+	glBindVertexArray(light.vao);
+	glDrawArrays(GL_TRIANGLES, 0, light.mesh_data.mPointCount);
 
 	
 	// Update the matrix for the floor model
@@ -269,21 +301,11 @@ void init()
 	diffuseShaderProgramID = Shaders::CompileShaders("advancedVertexShader.txt", "diffuseFragmentShader.txt");
 	specularShaderProgramID = Shaders::CompileShaders("advancedVertexShader.txt", "specularFragmentShader.txt");
 	textureShaderProgramID = Shaders::CompileShaders("textureVertexShader.txt", "textureFragmentShader.txt");
-/*
-
-	spider.generateVAO(diffuseShaderProgramID);
-	leg.generateVAO(diffuseShaderProgramID);
-	tile.generateVAO(diffuseShaderProgramID);
-	model = identity_mat4();
-
-
-	*/
-
-
 
 	spider.generateVAO(specularShaderProgramID);
 	leg.generateVAO(textureShaderProgramID);
 	tile.generateVAO(diffuseShaderProgramID);
+	light.generateVAO(specularShaderProgramID);
 	model = identity_mat4();
 }
 
@@ -429,6 +451,24 @@ void keypress(unsigned char key, int x, int y) {
 	case 'M':
 		printf("PRESSED M - Toggled mouse input / mouse binding. \n");
 		mouseInput = !mouseInput;
+		break;
+	case 'x':
+		light_x-=translate_increment;
+		break;
+	case 'X':
+		light_x+=translate_increment;
+		break;
+	case 'y':
+		light_y-=translate_increment;
+		break;
+	case 'Y':
+		light_y+=translate_increment;
+		break;
+	case 'z':
+		light_z-=translate_increment;
+		break;
+	case 'Z':
+		light_z+=translate_increment;
 		break;
 	case 'p':
 	case 'P':
