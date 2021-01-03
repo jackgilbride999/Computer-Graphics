@@ -10,17 +10,30 @@ vec3 light_color = vec3(0.5, 0.5, 0.5); // use the same color for ambient and di
 uniform vec3 light_position;
 uniform vec3 object_color;
 
+uniform vec3 lights_position[];
+
 void main(){
 	// ambient
 	float ambientStrength = 0.1;
 	vec3 ambient = ambientStrength * light_color;
 
+	vec3 runningTotal = ambient;
+
 	// diffuse
 	vec3 norm = normalize(tnorm);
-	vec3 lightDir = normalize(light_position - vertex_inWorldSpace);
+	vec3 lightDir = normalize(lights_position[0] - vertex_inWorldSpace);
 	float diff = max(dot(norm, lightDir), 0.0);
 	vec3 diffuse = diff * light_color;
+	runningTotal = runningTotal + diffuse;
 
-	vec3 result = (ambient + diffuse) * object_color;
+	// diffuse
+	norm = normalize(tnorm);
+	lightDir = normalize(lights_position[1] - vertex_inWorldSpace);
+	diff = max(dot(norm, lightDir), 0.0);
+	diffuse = diff * light_color;
+	runningTotal = runningTotal + diffuse;
+
+	//vec3 result = (ambient + diffuse) * object_color;
+	vec3 result = runningTotal * object_color;
 	FragColor = vec4(result, 1.0);
 }
