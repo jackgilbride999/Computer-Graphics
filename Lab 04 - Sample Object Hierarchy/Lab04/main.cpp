@@ -42,7 +42,22 @@ int height = 600;
 Model spider = Model(SPIDER_MESH_NAME);
 Model leg = Model(LEG_MESH_NAME);
 Model tile = Model(TILE_MESH_NAME);
-Model box = Model(CUBE_MESH_NAME);
+Model specular_box = Model(CUBE_MESH_NAME);
+
+Model textured_boxes[] = {
+	Model(CUBE_MESH_NAME),
+	Model(CUBE_MESH_NAME),
+	Model(CUBE_MESH_NAME),
+	Model(CUBE_MESH_NAME),
+	Model(CUBE_MESH_NAME),
+	Model(CUBE_MESH_NAME)
+};
+
+
+Model hair_box = Model(CUBE_MESH_NAME);
+Model scratched_box = Model(CUBE_MESH_NAME);
+
+
 Camera camera = Camera(vec3(0.0f, 1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f));
 
 GLfloat rotate_increment = 1.0f;
@@ -79,7 +94,6 @@ int matrix_location;
 int view_mat_location;
 int proj_mat_location;
 
-int light_position_location;
 int object_color_location;
 
 int view_pos_location;
@@ -114,7 +128,6 @@ void draw_spider(vec3 spider_color, vec3 initial_coords, vec3 lights_position[])
 	matrix_location = glGetUniformLocation(specularShaderProgramID, "model");
 	view_mat_location = glGetUniformLocation(specularShaderProgramID, "view");
 	proj_mat_location = glGetUniformLocation(specularShaderProgramID, "proj");
-	light_position_location = glGetUniformLocation(specularShaderProgramID, "light_position");
 	object_color_location = glGetUniformLocation(specularShaderProgramID, "object_color");
 	view_pos_location = glGetUniformLocation(specularShaderProgramID, "view_pos");
 	specular_coef_location = glGetUniformLocation(specularShaderProgramID, "specular_coef");
@@ -125,10 +138,9 @@ void draw_spider(vec3 spider_color, vec3 initial_coords, vec3 lights_position[])
 	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
 	glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
 	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, spider_matrix.m);
-	//glUniform3fv(light_position_location, 1, (GLfloat*)&light1_position);
 	glUniform3fv(object_color_location, 1, (GLfloat*)&spider_color);
 	glUniform3fv(view_pos_location, 1, (GLfloat*)&camera.position);
-	glUniform1f(specular_coef_location, 50);
+	glUniform1f(specular_coef_location, 1);
 
 	glUniform3fv(lights_position_location, 2, (GLfloat*)lights_position);
 
@@ -185,7 +197,10 @@ void draw_spider(vec3 spider_color, vec3 initial_coords, vec3 lights_position[])
 	// Update the texture uniforms and draw each leg
 	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
 	glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
+
+	glBindTexture(GL_TEXTURE_2D, leg.texture);
 	glBindVertexArray(leg.vao);
+
 	for (int i = 0; i < 8; i++) {
 		legArray[i] = spider_matrix * legArray[i];
 		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, legArray[i].m);
@@ -194,9 +209,27 @@ void draw_spider(vec3 spider_color, vec3 initial_coords, vec3 lights_position[])
 }
 
 void draw_static_scene() {
-	mat4 identity_matrix = identity_mat4();
 
-	mat4 textured_box_1 = identity_matrix;
+	// set up uniforms for static textured objects:
+	glUseProgram(textureShaderProgramID);
+	matrix_location = glGetUniformLocation(textureShaderProgramID, "model");
+	view_mat_location = glGetUniformLocation(textureShaderProgramID, "view");
+	proj_mat_location = glGetUniformLocation(textureShaderProgramID, "proj");
+	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
+	glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
+
+	// draw static textured boxes
+	for (int i = 0; i < 5; i++) {
+		mat4 textured_box_i = identity_mat4();
+		textured_box_i = scale(textured_box_i, vec3(0.2, 0.2, 0.2));
+		textured_box_i = translate(textured_box_i, vec3(i, 0.5, 20));
+		glBindTexture(GL_TEXTURE_2D, textured_boxes[i].texture);
+		glBindVertexArray(textured_boxes[i].vao);
+		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, textured_box_i.m);
+		glDrawArrays(GL_TRIANGLES, 0, textured_boxes[i].mesh_data.mPointCount);
+
+	}
+
 
 }
 
@@ -226,15 +259,17 @@ void display() {
 		camera.up
 	);
 
+
+	draw_static_scene();
+
 	draw_spider(vec3(1, 0, 0), vec3(-1.0f, 0.5f, 20.0f), lights_position);
-	draw_spider(vec3(0, 1, 0), vec3(0.0f, 0.5f, 20.0f), lights_position);
+	draw_spider(vec3(0, 1, 0), vec3(0.0f, 0.5f, 25.0f), lights_position);
 	draw_spider(vec3(0, 0, 1), vec3(1.0f, 0.5f, 20.0f), lights_position);
 
 	glUseProgram(specularShaderProgramID);
 	matrix_location = glGetUniformLocation(specularShaderProgramID, "model");
 	view_mat_location = glGetUniformLocation(specularShaderProgramID, "view");
 	proj_mat_location = glGetUniformLocation(specularShaderProgramID, "proj");
-	light_position_location = glGetUniformLocation(specularShaderProgramID, "light_position");
 	object_color_location = glGetUniformLocation(specularShaderProgramID, "object_color");
 	view_pos_location = glGetUniformLocation(specularShaderProgramID, "view_pos");
 	specular_coef_location = glGetUniformLocation(specularShaderProgramID, "specular_coef");
@@ -253,7 +288,6 @@ void display() {
 		glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
 		glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
 
-		//glUniform3fv(light_position_location, 1, (GLfloat*)&lights_position[i]);
 		glUniform3fv(object_color_location, 1, (GLfloat*)&vec3(1, 1, 1));
 		glUniform3fv(view_pos_location, 1, (GLfloat*)&camera.position);
 		glUniform1f(specular_coef_location, 200);
@@ -261,8 +295,8 @@ void display() {
 		glUniform3fv(lights_position_location, 2, (GLfloat*)&lights_position);
 
 
-		glBindVertexArray(box.vao);
-		glDrawArrays(GL_TRIANGLES, 0, box.mesh_data.mPointCount);
+		glBindVertexArray(specular_box.vao);
+		glDrawArrays(GL_TRIANGLES, 0, specular_box.mesh_data.mPointCount);
 	}
 	
 	// Update the matrix for the floor model
@@ -332,10 +366,17 @@ void init()
 	specularShaderProgramID = Shaders::CompileShaders("advancedVertexShader.txt", "specularFragmentShader.txt");
 	textureShaderProgramID = Shaders::CompileShaders("textureVertexShader.txt", "textureFragmentShader.txt");
 
-	spider.generateVAO(specularShaderProgramID);
-	leg.generateVAO(textureShaderProgramID);
-	tile.generateVAO(diffuseShaderProgramID);
-	box.generateVAO(specularShaderProgramID);
+	spider.generateVAO(specularShaderProgramID, "");
+	leg.generateVAO(textureShaderProgramID, "hair_texture.jpg");
+	tile.generateVAO(diffuseShaderProgramID, "");
+	specular_box.generateVAO(specularShaderProgramID, "");
+	hair_box.generateVAO(textureShaderProgramID, "hair_texture.jpg");
+
+	textured_boxes[0].generateVAO(textureShaderProgramID, "hair_texture.jpg");
+	textured_boxes[1].generateVAO(textureShaderProgramID, "blue_wall.jpg");
+	textured_boxes[2].generateVAO(textureShaderProgramID, "fur_texture.jpg");
+	textured_boxes[3].generateVAO(textureShaderProgramID, "scratched_metal.jpg");
+	textured_boxes[4].generateVAO(textureShaderProgramID, "spooky_wood.jpg");
 }
 
 void mouseMoved(int newMouseX, int newMouseY) {
@@ -348,109 +389,6 @@ void mouseMoved(int newMouseX, int newMouseY) {
 
 void keypress(unsigned char key, int x, int y) {
 	switch (key) {
-	case '`':
-		printf("PRESSED ` - Reset model.\n");
-		rotate_x = 0.0f;
-		rotate_y = 0.0f;
-		rotate_z = 0.0f;
-		translate_x = 0.0f;
-		translate_y = 0.0f;
-		translate_z = 0.0f;
-		scale_x = 1.0f;
-		scale_y = 1.0f;
-		scale_z = 1.0f;
-		break;
-	case '1':
-		printf("PRESSED 1 - Rotate spider forwards.\n");
-		rotate_x += rotate_increment;
-		rotate_x = fmodf(rotate_x, 360.0f);
-		break;
-	case '!':
-		printf("PRESSED SHIFT 1 - Rotate spider backwards. \n");
-		rotate_x -= rotate_increment;
-		rotate_x = fmodf(rotate_x, 360.0f);
-		break;
-	case '2':
-		printf("PRESSED 2 - Rotate spider left. \n");
-		rotate_y += rotate_increment;
-		rotate_y = fmodf(rotate_y, 360.0f);
-		break;
-	case '"':
-		printf("PRESSED SHIFT 2 - Rotate spider right. \n");
-		rotate_y -= rotate_increment;
-		rotate_y = fmodf(rotate_y, 360.0f);
-		break;
-	case '3':
-		printf("PRESSED 3 - Rotate spider clockwise. \n");
-		rotate_z += rotate_increment;
-		rotate_z = fmodf(rotate_z, 360.0f);
-		break;
-	case '£':
-	case 163:	// the above case does not always work, so use the ascii number
-		printf("PRESSED SHIFT 3 - Rotate spider counter-clockwise. \n");
-		rotate_z -= rotate_increment;
-		rotate_z = fmodf(rotate_z, 360.0f);
-		break;
-	case '4':
-		printf("PRESSED 4 - Translate spider positively on x-axis. \n");
-		translate_x += translate_increment;
-		break;
-	case '$':
-		printf("PRESSED SHIFT 4 - Translate spider negatively on x-axis. \n");
-		translate_x -= translate_increment;
-		break;
-	case '5':
-		printf("PRESSED 5 - Translate spider positively on y-axis. \n");
-		translate_y += translate_increment;
-		break;
-	case '%':
-		printf("PRESSED SHIFT 5 - Translate spider negatively on y-axis. \n");
-		translate_y -= translate_increment;
-		break;
-	case '6':
-		printf("PRESSED 6 - Translate spider positively on z-axis. \n");
-		translate_z += translate_increment;
-		break;
-	case '^':
-		printf("PRESSED 6 - Translate spider negatviely on z-axis. \n");
-		translate_z -= translate_increment;
-		break;
-	case '7':
-		printf("PRESSED 7 - Increase spider width. \n");
-		scale_x *= scale_increment;
-		break;
-	case '&':
-		printf("PRESSED SHIFT 7 - Decrease spider width. \n");
-		scale_x /= scale_increment;
-		break;
-	case '8':
-		printf("PRESSED 8 - Increase spider height. \n");
-		scale_y *= scale_increment;
-		break;
-	case '*':
-		printf("PRESSED SHIFT 8 - Decrease spider height. \n");
-		scale_y /= scale_increment;
-		break;
-	case '9':
-		printf("PRESSED 9 - Increase spider depth. \n");
-		scale_z *= scale_increment;
-		break;
-	case '(':
-		printf("PRESSED SHIFT 9 - Decrease spider depth. \n");
-		scale_z /= scale_increment;
-		break;
-	case '0':
-		printf("PRESSED 0 - Increase spider size uniformly. \n");
-		scale_x *= scale_increment;
-		scale_y *= scale_increment;
-		scale_z *= scale_increment;
-		break;
-	case ')':
-		printf("PRESSED SHIFT 0 - Decrease spider size uniformly. \n");
-		scale_x /= scale_increment;
-		scale_y /= scale_increment;
-		scale_z /= scale_increment;
-		break;
 	case 'W':
 	case 'w':
 		printf("PRESSED W - Walk forward.\n");

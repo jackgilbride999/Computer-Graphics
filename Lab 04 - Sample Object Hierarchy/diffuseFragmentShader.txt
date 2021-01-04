@@ -7,7 +7,6 @@ in vec3 vertex_inWorldSpace;	// world space representation of the vertex
 
 vec3 light_color = vec3(0.5, 0.5, 0.5); // use the same color for ambient and diffuse but these can be separated
 
-uniform vec3 light_position;
 uniform vec3 object_color;
 
 uniform vec3 lights_position[];
