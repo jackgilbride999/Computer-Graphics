@@ -6,16 +6,6 @@
 Model::Model(const char* file_name) {
 	mesh_data = load_mesh(file_name);
 
-	// some default values
-	rotate_x = 0.0f;
-	rotate_y = 0.0f;
-	rotate_z = 0.0f;
-	translate_x = 0.0f;
-	translate_y = 0.0f;
-	translate_z = 0.0f;
-	scale_x = 0.1f;
-	scale_y = 0.1f;
-	scale_z = 0.1f;
 }
 
 ModelData Model::load_mesh(const char* file_name) {

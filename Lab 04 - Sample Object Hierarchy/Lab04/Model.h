@@ -35,15 +35,6 @@ public:
 	unsigned int texture;
 	ModelData mesh_data;
 
-	GLfloat rotate_x;
-	GLfloat rotate_y;
-	GLfloat rotate_z;
-	GLfloat translate_x;
-	GLfloat translate_y;
-	GLfloat translate_z;
-	GLfloat scale_x;
-	GLfloat scale_y;
-	GLfloat scale_z;
 
 	Model(const char* file_name);
 	void generateVAO(GLuint shaderProgramID, const char* texture_name);
