@@ -21,6 +21,7 @@
 #include "Model.h"
 #include "Shaders.h"
 #include "Camera.h"
+#include "Object.h"
 
 /*----------------------------------------------------------------------------
 MESH TO LOAD
@@ -44,15 +45,19 @@ Model leg = Model(LEG_MESH_NAME);
 Model tile = Model(TILE_MESH_NAME);
 Model specular_box = Model(CUBE_MESH_NAME);
 
-Model textured_boxes[] = {
-	Model(CUBE_MESH_NAME),
-	Model(CUBE_MESH_NAME),
-	Model(CUBE_MESH_NAME),
-	Model(CUBE_MESH_NAME),
-	Model(CUBE_MESH_NAME),
-	Model(CUBE_MESH_NAME)
-};
+Model box1(CUBE_MESH_NAME);
+Model box2(CUBE_MESH_NAME);
+Model box3(CUBE_MESH_NAME);
+Model box4(CUBE_MESH_NAME);
+Model box5(CUBE_MESH_NAME);
 
+Object textured_box_objects[] = {
+	Object(&box1),
+	Object(&box2),
+	Object(&box3),
+	Object(&box4),
+	Object(&box5),
+};
 
 Model hair_box = Model(CUBE_MESH_NAME);
 Model scratched_box = Model(CUBE_MESH_NAME);
@@ -218,18 +223,15 @@ void draw_static_scene() {
 	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
 	glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
 
-	// draw static textured boxes
+
 	for (int i = 0; i < 5; i++) {
-		mat4 textured_box_i = identity_mat4();
-		textured_box_i = scale(textured_box_i, vec3(0.2, 0.2, 0.2));
-		textured_box_i = translate(textured_box_i, vec3(i, 0.5, 20));
-		glBindTexture(GL_TEXTURE_2D, textured_boxes[i].texture);
-		glBindVertexArray(textured_boxes[i].vao);
-		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, textured_box_i.m);
-		glDrawArrays(GL_TRIANGLES, 0, textured_boxes[i].mesh_data.mPointCount);
-
+		textured_box_objects[i].matrix = scale(identity_mat4(), vec3(0.2, 0.2, 0.2));
+		textured_box_objects[i].matrix = translate(textured_box_objects[i].matrix, vec3(i, 0.5, 20));
+		glBindTexture(GL_TEXTURE_2D, textured_box_objects[i].model->texture);
+		glBindVertexArray(textured_box_objects[i].model->vao);
+		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, textured_box_objects[i].matrix.m);
+		glDrawArrays(GL_TRIANGLES, 0, textured_box_objects[i].model->mesh_data.mPointCount);
 	}
-
 
 }
 
@@ -372,11 +374,12 @@ void init()
 	specular_box.generateVAO(specularShaderProgramID, "");
 	hair_box.generateVAO(textureShaderProgramID, "hair_texture.jpg");
 
-	textured_boxes[0].generateVAO(textureShaderProgramID, "hair_texture.jpg");
-	textured_boxes[1].generateVAO(textureShaderProgramID, "blue_wall.jpg");
-	textured_boxes[2].generateVAO(textureShaderProgramID, "fur_texture.jpg");
-	textured_boxes[3].generateVAO(textureShaderProgramID, "scratched_metal.jpg");
-	textured_boxes[4].generateVAO(textureShaderProgramID, "spooky_wood.jpg");
+	textured_box_objects[0].model->generateVAO(textureShaderProgramID, "hair_texture.jpg");
+	textured_box_objects[1].model->generateVAO(textureShaderProgramID, "blue_wall.jpg");
+	textured_box_objects[2].model->generateVAO(textureShaderProgramID, "fur_texture.jpg");
+	textured_box_objects[3].model->generateVAO(textureShaderProgramID, "scratched_metal.jpg");
+	textured_box_objects[4].model->generateVAO(textureShaderProgramID, "spooky_wood.jpg");
+	
 }
 
 void mouseMoved(int newMouseX, int newMouseY) {

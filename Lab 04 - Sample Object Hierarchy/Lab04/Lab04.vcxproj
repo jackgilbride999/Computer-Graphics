@@ -84,12 +84,14 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="maths_funcs.cpp" />
     <ClCompile Include="Model.cpp" />
+    <ClCompile Include="Object.cpp" />
     <ClCompile Include="Shaders.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="maths_funcs.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="Object.h" />
     <ClInclude Include="Shaders.h" />
     <ClInclude Include="stb_image.h" />
   </ItemGroup>
