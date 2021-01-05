@@ -40,7 +40,8 @@ using namespace std;
 int width = 800;
 int height = 600;
 
-Model spider = Model(SPIDER_MESH_NAME);
+Model specular_spider_model = Model(SPIDER_MESH_NAME);
+
 Model leg = Model(LEG_MESH_NAME);
 Model tile = Model(TILE_MESH_NAME);
 Model specular_box = Model(CUBE_MESH_NAME);
@@ -51,6 +52,12 @@ Model box3(CUBE_MESH_NAME);
 Model box4(CUBE_MESH_NAME);
 Model box5(CUBE_MESH_NAME);
 
+Object spider_objects[] = {
+	Object(&specular_spider_model),
+	Object(&specular_spider_model),
+	Object(&specular_spider_model)
+};
+
 Object textured_box_objects[] = {
 	Object(&box1),
 	Object(&box2),
@@ -58,10 +65,6 @@ Object textured_box_objects[] = {
 	Object(&box4),
 	Object(&box5),
 };
-
-Model hair_box = Model(CUBE_MESH_NAME);
-Model scratched_box = Model(CUBE_MESH_NAME);
-
 
 Camera camera = Camera(vec3(0.0f, 1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f));
 
@@ -81,7 +84,6 @@ GLfloat scale_x = 0.1f;
 GLfloat scale_y = 0.1f;
 GLfloat scale_z = 0.1f;
 
-
 GLfloat leg_set_1_rotate_x = 0.0f;
 boolean leg_set_1_rotate_x_increasing = true;
 
@@ -90,10 +92,6 @@ boolean leg_set_2_rotate_x_increasing = false;
 
 boolean animation = true;
 boolean mouseInput = false;
-
-GLfloat light_x = 4;
-GLfloat light_y = 1;
-GLfloat light_z = 20;
 
 int matrix_location;
 int view_mat_location;
@@ -113,6 +111,49 @@ GLuint diffuseShaderProgramID;
 GLuint specularShaderProgramID;
 GLuint textureShaderProgramID;
 
+void init()
+{
+	diffuseShaderProgramID = Shaders::CompileShaders("advancedVertexShader.txt", "diffuseFragmentShader.txt");
+	specularShaderProgramID = Shaders::CompileShaders("advancedVertexShader.txt", "specularFragmentShader.txt");
+	textureShaderProgramID = Shaders::CompileShaders("textureVertexShader.txt", "textureFragmentShader.txt");
+
+	specular_spider_model.generateVAO(specularShaderProgramID, "");
+	leg.generateVAO(textureShaderProgramID, "hair_texture.jpg");
+	tile.generateVAO(diffuseShaderProgramID, "");
+	specular_box.generateVAO(specularShaderProgramID, "");
+
+	textured_box_objects[0].model->generateVAO(textureShaderProgramID, "hair_texture.jpg");
+	textured_box_objects[1].model->generateVAO(textureShaderProgramID, "blue_wall.jpg");
+	textured_box_objects[2].model->generateVAO(textureShaderProgramID, "fur_texture.jpg");
+	textured_box_objects[3].model->generateVAO(textureShaderProgramID, "scratched_metal.jpg");
+	textured_box_objects[4].model->generateVAO(textureShaderProgramID, "spooky_wood.jpg");
+
+}
+
+void bind_texture_shader_uniforms() {
+	matrix_location = glGetUniformLocation(textureShaderProgramID, "model");
+	view_mat_location = glGetUniformLocation(textureShaderProgramID, "view");
+	proj_mat_location = glGetUniformLocation(textureShaderProgramID, "proj");
+}
+
+void bind_diffuse_shader_uniforms() {
+	matrix_location = glGetUniformLocation(diffuseShaderProgramID, "model");
+	view_mat_location = glGetUniformLocation(diffuseShaderProgramID, "view");
+	proj_mat_location = glGetUniformLocation(diffuseShaderProgramID, "proj");
+	object_color_location = glGetUniformLocation(diffuseShaderProgramID, "object_color");
+	lights_position_location = glGetUniformLocation(diffuseShaderProgramID, "lights_position");
+}
+
+void bind_specular_shader_uniforms() {
+	matrix_location = glGetUniformLocation(specularShaderProgramID, "model");
+	view_mat_location = glGetUniformLocation(specularShaderProgramID, "view");
+	proj_mat_location = glGetUniformLocation(specularShaderProgramID, "proj");
+	object_color_location = glGetUniformLocation(specularShaderProgramID, "object_color");
+	view_pos_location = glGetUniformLocation(specularShaderProgramID, "view_pos");
+	specular_coef_location = glGetUniformLocation(specularShaderProgramID, "specular_coef");
+	lights_position_location = glGetUniformLocation(specularShaderProgramID, "lights_position");
+}
+
 //enum shader_types {AMBIENT, DIFFUSE, SPECULAR, TEXTURE};
 void draw_spider(vec3 spider_color, vec3 initial_coords, vec3 lights_position[]) {
 	// Update the root of the hierarchical spider model
@@ -130,14 +171,7 @@ void draw_spider(vec3 spider_color, vec3 initial_coords, vec3 lights_position[])
 
 	// Activate the specular shader program and locate the uniforms
 	glUseProgram(specularShaderProgramID);
-	matrix_location = glGetUniformLocation(specularShaderProgramID, "model");
-	view_mat_location = glGetUniformLocation(specularShaderProgramID, "view");
-	proj_mat_location = glGetUniformLocation(specularShaderProgramID, "proj");
-	object_color_location = glGetUniformLocation(specularShaderProgramID, "object_color");
-	view_pos_location = glGetUniformLocation(specularShaderProgramID, "view_pos");
-	specular_coef_location = glGetUniformLocation(specularShaderProgramID, "specular_coef");
-
-	lights_position_location = glGetUniformLocation(specularShaderProgramID, "lights_position");
+	bind_specular_shader_uniforms();
 
 	// Update the specular uniforms and draw the spider
 	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
@@ -149,8 +183,8 @@ void draw_spider(vec3 spider_color, vec3 initial_coords, vec3 lights_position[])
 
 	glUniform3fv(lights_position_location, 2, (GLfloat*)lights_position);
 
-	glBindVertexArray(spider.vao);
-	glDrawArrays(GL_TRIANGLES, 0, spider.mesh_data.mPointCount);
+	glBindVertexArray(specular_spider_model.vao);
+	glDrawArrays(GL_TRIANGLES, 0, specular_spider_model.mesh_data.mPointCount);
 
 
 	// Update the matrix for each leg model
@@ -195,9 +229,7 @@ void draw_spider(vec3 spider_color, vec3 initial_coords, vec3 lights_position[])
 
 	// Activate the texture shader program and locate the uniforms
 	glUseProgram(textureShaderProgramID);
-	matrix_location = glGetUniformLocation(textureShaderProgramID, "model");
-	view_mat_location = glGetUniformLocation(textureShaderProgramID, "view");
-	proj_mat_location = glGetUniformLocation(textureShaderProgramID, "proj");
+	bind_texture_shader_uniforms();
 
 	// Update the texture uniforms and draw each leg
 	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
@@ -214,15 +246,11 @@ void draw_spider(vec3 spider_color, vec3 initial_coords, vec3 lights_position[])
 }
 
 void draw_static_scene() {
-
 	// set up uniforms for static textured objects:
 	glUseProgram(textureShaderProgramID);
-	matrix_location = glGetUniformLocation(textureShaderProgramID, "model");
-	view_mat_location = glGetUniformLocation(textureShaderProgramID, "view");
-	proj_mat_location = glGetUniformLocation(textureShaderProgramID, "proj");
+	bind_texture_shader_uniforms();
 	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
 	glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
-
 
 	for (int i = 0; i < 5; i++) {
 		textured_box_objects[i].matrix = scale(identity_mat4(), vec3(0.2, 0.2, 0.2));
@@ -235,7 +263,6 @@ void draw_static_scene() {
 
 }
 
-
 void display() {
 	// tell GL to only draw onto a pixel if the shape is closer to the viewer
 	glEnable(GL_DEPTH_TEST); // enable depth-testing
@@ -246,7 +273,6 @@ void display() {
 	// Object colors
 	vec3 leg_color = vec3(0.5, 0.5, 0.5);
 	vec3 floor_color = vec3(1, 1, 1);
-	vec3 light1_position = vec3(light_x, light_y, light_z);
 
 	vec3 lights_position[] = {
 		vec3(4, 1, 20),
@@ -269,14 +295,7 @@ void display() {
 	draw_spider(vec3(0, 0, 1), vec3(1.0f, 0.5f, 20.0f), lights_position);
 
 	glUseProgram(specularShaderProgramID);
-	matrix_location = glGetUniformLocation(specularShaderProgramID, "model");
-	view_mat_location = glGetUniformLocation(specularShaderProgramID, "view");
-	proj_mat_location = glGetUniformLocation(specularShaderProgramID, "proj");
-	object_color_location = glGetUniformLocation(specularShaderProgramID, "object_color");
-	view_pos_location = glGetUniformLocation(specularShaderProgramID, "view_pos");
-	specular_coef_location = glGetUniformLocation(specularShaderProgramID, "specular_coef");
-
-	lights_position_location = glGetUniformLocation(specularShaderProgramID, "lights_position");
+	bind_specular_shader_uniforms();
 
 
 
@@ -307,11 +326,7 @@ void display() {
 
 	// Activate the diffuse shader program and locate the uniforms
 	glUseProgram(diffuseShaderProgramID);
-	matrix_location = glGetUniformLocation(diffuseShaderProgramID, "model");
-	view_mat_location = glGetUniformLocation(diffuseShaderProgramID, "view");
-	proj_mat_location = glGetUniformLocation(diffuseShaderProgramID, "proj");
-	object_color_location = glGetUniformLocation(diffuseShaderProgramID, "object_color");
-	lights_position_location = glGetUniformLocation(diffuseShaderProgramID, "lights_position");
+	bind_diffuse_shader_uniforms();
 
 	
 	// Update the diffuse uniforms and draw the floor
@@ -361,27 +376,6 @@ void updateScene() {
 	glutPostRedisplay();
 }
 
-
-void init()
-{
-	diffuseShaderProgramID = Shaders::CompileShaders("advancedVertexShader.txt", "diffuseFragmentShader.txt");
-	specularShaderProgramID = Shaders::CompileShaders("advancedVertexShader.txt", "specularFragmentShader.txt");
-	textureShaderProgramID = Shaders::CompileShaders("textureVertexShader.txt", "textureFragmentShader.txt");
-
-	spider.generateVAO(specularShaderProgramID, "");
-	leg.generateVAO(textureShaderProgramID, "hair_texture.jpg");
-	tile.generateVAO(diffuseShaderProgramID, "");
-	specular_box.generateVAO(specularShaderProgramID, "");
-	hair_box.generateVAO(textureShaderProgramID, "hair_texture.jpg");
-
-	textured_box_objects[0].model->generateVAO(textureShaderProgramID, "hair_texture.jpg");
-	textured_box_objects[1].model->generateVAO(textureShaderProgramID, "blue_wall.jpg");
-	textured_box_objects[2].model->generateVAO(textureShaderProgramID, "fur_texture.jpg");
-	textured_box_objects[3].model->generateVAO(textureShaderProgramID, "scratched_metal.jpg");
-	textured_box_objects[4].model->generateVAO(textureShaderProgramID, "spooky_wood.jpg");
-	
-}
-
 void mouseMoved(int newMouseX, int newMouseY) {
 	if (mouseInput) {
 		printf("MOUSE MOVED - Rotate camera. \n");
@@ -422,24 +416,6 @@ void keypress(unsigned char key, int x, int y) {
 		printf("PRESSED M - Toggled mouse input / mouse binding. \n");
 		mouseInput = !mouseInput;
 		break;
-	case 'x':
-		light_x-=translate_increment;
-		break;
-	case 'X':
-		light_x+=translate_increment;
-		break;
-	case 'y':
-		light_y-=translate_increment;
-		break;
-	case 'Y':
-		light_y+=translate_increment;
-		break;
-	case 'z':
-		light_z-=translate_increment;
-		break;
-	case 'Z':
-		light_z+=translate_increment;
-		break;
 	case 'p':
 	case 'P':
 		printf("Switched perspective FOV. \n");
@@ -460,6 +436,7 @@ void keypress(unsigned char key, int x, int y) {
 		break;		
 	}
 }
+
 
 int main(int argc, char** argv) {
 
