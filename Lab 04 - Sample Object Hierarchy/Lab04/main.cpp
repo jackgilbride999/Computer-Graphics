@@ -58,6 +58,11 @@ Object textured_box_objects[] = {
 	Object(&box5, vec3(0,0,0)),
 };
 
+vec3 lights_position[] = {
+	vec3(4, 1, 20),
+	vec3(-4, 1, 20)
+};
+
 Spider spider1 = Spider(&specular_spider_model, &leg, &specular_eye_model, vec3(1,0,0), vec3(0,1,0), vec3(0,0,1));
 
 Camera camera = Camera(vec3(0.0f, 1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f));
@@ -123,21 +128,30 @@ void init()
 
 }
 
-void bind_texture_shader_uniforms() {
+void activate_texture_shader() {
+	glUseProgram(textureShaderProgramID);
 	matrix_location = glGetUniformLocation(textureShaderProgramID, "model");
 	view_mat_location = glGetUniformLocation(textureShaderProgramID, "view");
 	proj_mat_location = glGetUniformLocation(textureShaderProgramID, "proj");
+
+	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
+	glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
 }
 
-void bind_diffuse_shader_uniforms() {
+void activate_diffuse_shader() {
+	glUseProgram(diffuseShaderProgramID);
 	matrix_location = glGetUniformLocation(diffuseShaderProgramID, "model");
 	view_mat_location = glGetUniformLocation(diffuseShaderProgramID, "view");
 	proj_mat_location = glGetUniformLocation(diffuseShaderProgramID, "proj");
 	object_color_location = glGetUniformLocation(diffuseShaderProgramID, "object_color");
 	lights_position_location = glGetUniformLocation(diffuseShaderProgramID, "lights_position");
+
+	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
+	glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
 }
 
-void bind_specular_shader_uniforms() {
+void activate_specular_shader() {
+	glUseProgram(specularShaderProgramID);
 	matrix_location = glGetUniformLocation(specularShaderProgramID, "model");
 	view_mat_location = glGetUniformLocation(specularShaderProgramID, "view");
 	proj_mat_location = glGetUniformLocation(specularShaderProgramID, "proj");
@@ -145,9 +159,47 @@ void bind_specular_shader_uniforms() {
 	view_pos_location = glGetUniformLocation(specularShaderProgramID, "view_pos");
 	specular_coef_location = glGetUniformLocation(specularShaderProgramID, "specular_coef");
 	lights_position_location = glGetUniformLocation(specularShaderProgramID, "lights_position");
+
+	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
+	glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
+
 }
 
-void draw_spider(vec3 spider_color, vec3 initial_coords, vec3 lights_position[]) {
+void draw_spider(Spider spider) {
+
+	spider.body.matrix = translate(spider.body.matrix, vec3(0, 0, 0));
+	activate_specular_shader();
+	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, spider.body.matrix.m);
+	glUniform3fv(object_color_location, 1, (GLfloat*)&spider.body_color);
+	glUniform3fv(view_pos_location, 1, (GLfloat*)&camera.position);
+	glUniform1f(specular_coef_location, 1);
+	glUniform3fv(lights_position_location, 2, (GLfloat*)lights_position);
+	glBindVertexArray(spider.body.model->vao);
+	glDrawArrays(GL_TRIANGLES, 0, spider.body.model->mesh_data.mPointCount);
+
+	glBindVertexArray(spider.body.model->vao);
+	glDrawArrays(GL_TRIANGLES, 0, spider.body.model->mesh_data.mPointCount);
+
+
+	glBindVertexArray(spider.eyes->model->vao);
+	for (int i = 0; i < 7; i++) {
+		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, spider.eyes[i].matrix.m);
+		glDrawArrays(GL_TRIANGLES, 0, spider.eyes[i].model->mesh_data.mPointCount);
+	}
+
+
+	activate_texture_shader();
+	glBindTexture(GL_TEXTURE_2D, spider.legs->model->texture);
+	glBindVertexArray(spider.legs->model->vao);
+
+	for (int i = 0; i < 8; i++) {
+		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, spider.legs[i].matrix.m);
+		glDrawArrays(GL_TRIANGLES, 0, spider.legs[i].model->mesh_data.mPointCount);
+	}
+
+}
+
+void draw_spider(vec3 spider_color, vec3 initial_coords) {
 
 	mat4 spider_matrix = identity_mat4();
 	spider_matrix = scale(spider_matrix, vec3(scale_x, scale_y, scale_z));
@@ -159,11 +211,9 @@ void draw_spider(vec3 spider_color, vec3 initial_coords, vec3 lights_position[])
 	spider_matrix = translate(spider_matrix, vec3(translate_x, translate_y, translate_z));
 
 	// Activate the specular shader program and locate the uniforms
-	glUseProgram(specularShaderProgramID);
-	bind_specular_shader_uniforms();
+	activate_specular_shader();
 
-	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
-	glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
+
 	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, spider_matrix.m);
 	glUniform3fv(object_color_location, 1, (GLfloat*)&spider_color);
 	glUniform3fv(view_pos_location, 1, (GLfloat*)&camera.position);
@@ -215,12 +265,8 @@ void draw_spider(vec3 spider_color, vec3 initial_coords, vec3 lights_position[])
 	legArray[7] = translate(legArray[7], vec3(0.0f, 0.0f, 1.0f));
 
 	// Activate the texture shader program and locate the uniforms
-	glUseProgram(textureShaderProgramID);
-	bind_texture_shader_uniforms();
+	activate_texture_shader();
 
-	// Update the texture uniforms and draw each leg
-	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
-	glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
 
 	glBindTexture(GL_TEXTURE_2D, leg.texture);
 	glBindVertexArray(leg.vao);
@@ -235,10 +281,8 @@ void draw_spider(vec3 spider_color, vec3 initial_coords, vec3 lights_position[])
 	vec3 eye_color = vec3(0.63, 0.13, 0.94);
 	mat4 eyeArray[7 * sizeof(mat4)];
 	vec3 eye_scaling_factor = vec3(0.15, 0.15, 0.15);
-	glUseProgram(specularShaderProgramID);
-	bind_specular_shader_uniforms();
-	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
-	glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
+	activate_specular_shader();
+
 
 	glUniform3fv(object_color_location, 1, (GLfloat*)&eye_color);
 	glUniform3fv(view_pos_location, 1, (GLfloat*)&camera.position);
@@ -262,10 +306,8 @@ void draw_spider(vec3 spider_color, vec3 initial_coords, vec3 lights_position[])
 
 void draw_static_scene() {
 	// set up uniforms for static textured objects:
-	glUseProgram(textureShaderProgramID);
-	bind_texture_shader_uniforms();
-	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
-	glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
+	activate_texture_shader();
+
 
 	for (int i = 0; i < 5; i++) {
 		textured_box_objects[i].matrix = scale(identity_mat4(), vec3(0.2, 0.2, 0.2));
@@ -287,10 +329,6 @@ void display() {
 	vec3 leg_color = vec3(0.5, 0.5, 0.5);
 	vec3 floor_color = vec3(1, 1, 1);
 
-	vec3 lights_position[] = {
-		vec3(4, 1, 20),
-		vec3(-4, 1, 20)
-	};
 
 	persp_proj = perspective(perspective_fovy, (float)width / (float)height, 0.1f, 1000.0f);
 	view = look_at(
@@ -301,12 +339,13 @@ void display() {
 
 	draw_static_scene();
 
-	draw_spider(vec3(1, 0, 0), vec3(-1.0f, 0.5f, 20.0f), lights_position);
-	draw_spider(vec3(0, 1, 0), vec3(0.0f, 0.5f, 25.0f), lights_position);
-	draw_spider(vec3(0, 0, 1), vec3(1.0f, 0.5f, 20.0f), lights_position);
+	draw_spider(vec3(1, 0, 0), vec3(-1.0f, 0.5f, 20.0f));
+	draw_spider(vec3(0, 1, 0), vec3(0.0f, 0.5f, 25.0f));
+	draw_spider(vec3(0, 0, 1), vec3(1.0f, 0.5f, 20.0f));
 
-	glUseProgram(specularShaderProgramID);
-	bind_specular_shader_uniforms();
+	draw_spider(spider1);
+
+	activate_specular_shader();
 
 	// draw lights
 	for (int i = 0; i < 2; i++) {
@@ -315,8 +354,7 @@ void display() {
 		light_matrix = translate(light_matrix, lights_position[i]);
 		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, light_matrix.m);
 
-		glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
-		glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
+
 
 		glUniform3fv(object_color_location, 1, (GLfloat*)&vec3(1, 1, 1));
 		glUniform3fv(view_pos_location, 1, (GLfloat*)&camera.position);
@@ -334,12 +372,8 @@ void display() {
 	floor_matrix = scale(floor_matrix, vec3(100.0f, 1.0f, 100.0f));
 
 	// Activate the diffuse shader program and locate the uniforms
-	glUseProgram(diffuseShaderProgramID);
-	bind_diffuse_shader_uniforms();
+	activate_diffuse_shader();
 
-	// Update the diffuse uniforms and draw the floor
-	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
-	glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
 	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, floor_matrix.m);
 	glUniform3fv(object_color_location, 1, (GLfloat*)&floor_color);
 
