@@ -21,20 +21,31 @@ Spider::Spider(Model* body_model, Model* leg_model, Model* eye_model, vec3 body_
 }
 
 void Spider::scale_hierarchy(vec3 v) {
-
+	this->body.matrix = scale(this->body.matrix, v);
+	update_hierarchy();
 }
 
 void Spider::translate_hierarchy(vec3 v) {
-
+	this->body.matrix = translate(this->body.matrix, v);
+	update_hierarchy();
 }
 
-void Spider::rotate_hierarchy(vec3 v) {
+void Spider::rotate_hierarchy_x_deg(float deg) {
+	this->body.matrix = rotate_x_deg(this->body.matrix, deg);
+	update_hierarchy();
+}
 
+void Spider::rotate_hierarchy_y_deg(float deg) {
+	this->body.matrix = rotate_y_deg(this->body.matrix, deg);
+	update_hierarchy();
+}
+
+void Spider::rotate_hierarchy_z_deg(float deg) {
+	this->body.matrix = rotate_z_deg(this->body.matrix, deg);
+	update_hierarchy();
 }
 
 void Spider::update_hierarchy() {
-
-	this->body.matrix = translate(identity_mat4(), vec3(0.0, 4, 0.0));
 
 	for (int i = 0; i < 8; i++) {
 		this->legs[i].matrix = scale(identity_mat4(), leg_scaling_factor);

@@ -126,6 +126,10 @@ void init()
 	textured_box_objects[3].model->generateVAO(textureShaderProgramID, "scratched_metal.jpg");
 	textured_box_objects[4].model->generateVAO(textureShaderProgramID, "spooky_wood.jpg");
 
+	spider1.scale_hierarchy(vec3(0.1, 0.1, 0.1));
+	spider1.rotate_hierarchy_y_deg(180);
+	spider1.translate_hierarchy(vec3(-1.5, 0.5, 20));
+
 }
 
 void activate_texture_shader() {
@@ -180,7 +184,7 @@ void draw_spider(Spider spider) {
 	glBindVertexArray(spider.body.model->vao);
 	glDrawArrays(GL_TRIANGLES, 0, spider.body.model->mesh_data.mPointCount);
 
-
+	glUniform3fv(object_color_location, 1, (GLfloat*)&spider.eye_color);
 	glBindVertexArray(spider.eyes->model->vao);
 	for (int i = 0; i < 7; i++) {
 		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, spider.eyes[i].matrix.m);
@@ -411,8 +415,8 @@ void updateScene() {
 	if (animation) {
 		update_leg_rotation(leg_set_1_rotate_x, leg_set_1_rotate_x_increasing, delta);
 		update_leg_rotation(leg_set_2_rotate_x, leg_set_2_rotate_x_increasing, delta);
-		translate_z -= 0.001;
-		translate_x = sin(translate_z)/5;
+		spider1.translate_hierarchy(vec3(0, 0, -0.001));
+
 	}
 	glutPostRedisplay();
 }
