@@ -45,20 +45,20 @@ Model box4(CUBE_MESH_NAME);
 Model box5(CUBE_MESH_NAME);
 
 Object spider_objects[] = {
-	Object(&specular_spider_model),
-	Object(&specular_spider_model),
-	Object(&specular_spider_model)
+	Object(&specular_spider_model, vec3(1,0,0)),
+	Object(&specular_spider_model, vec3(0,1,0)),
+	Object(&specular_spider_model, vec3(0,0,1))
 };
 
 Object textured_box_objects[] = {
-	Object(&box1),
-	Object(&box2),
-	Object(&box3),
-	Object(&box4),
-	Object(&box5),
+	Object(&box1, vec3(0,0,0)),
+	Object(&box2, vec3(0,0,0)),
+	Object(&box3, vec3(0,0,0)),
+	Object(&box4, vec3(0,0,0)),
+	Object(&box5, vec3(0,0,0)),
 };
 
-Spider spider1 = Spider(&specular_spider_model, &leg, &specular_eye_model);
+Spider spider1 = Spider(&specular_spider_model, &leg, &specular_eye_model, vec3(1,0,0), vec3(0,1,0), vec3(0,0,1));
 
 Camera camera = Camera(vec3(0.0f, 1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f));
 
@@ -110,8 +110,9 @@ void init()
 
 	specular_spider_model.generateVAO(specularShaderProgramID, "");
 	leg.generateVAO(textureShaderProgramID, "hair_texture.jpg");
-	tile.generateVAO(diffuseShaderProgramID, "");
 	specular_eye_model.generateVAO(specularShaderProgramID, "");
+
+	tile.generateVAO(diffuseShaderProgramID, "");
 	specular_box.generateVAO(specularShaderProgramID, "");
 
 	textured_box_objects[0].model->generateVAO(textureShaderProgramID, "hair_texture.jpg");

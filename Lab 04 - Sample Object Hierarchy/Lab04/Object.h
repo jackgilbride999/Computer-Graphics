@@ -20,7 +20,8 @@ class Object
 public:
 	mat4 matrix;
 	Model* model;
-	Object(Model * model);
+	vec3 color;
+	Object(Model * model, vec3 color);
 	Object();
 };
 
