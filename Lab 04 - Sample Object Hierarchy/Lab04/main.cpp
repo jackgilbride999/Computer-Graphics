@@ -71,9 +71,9 @@ GLfloat rotate_z = 0.0f;
 GLfloat translate_x = 0.0f;
 GLfloat translate_y = 0.0f;
 GLfloat translate_z = 0.0f;
-GLfloat scale_x = 1.0f;
-GLfloat scale_y = 1.0f;
-GLfloat scale_z = 1.0f;
+GLfloat scale_x = 0.1f;
+GLfloat scale_y = 0.1f;
+GLfloat scale_z = 0.1f;
 
 GLfloat leg_set_1_rotate_x = 0.0f;
 boolean leg_set_1_rotate_x_increasing = true;
@@ -222,6 +222,7 @@ void draw_spider(vec3 spider_color, vec3 initial_coords, vec3 lights_position[])
 	glBindVertexArray(leg.vao);
 
 	for (int i = 0; i < 8; i++) {
+		legArray[i] = scale(legArray[i], leg_scaling_factor);
 		legArray[i] = spider_matrix * legArray[i];
 		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, legArray[i].m);
 		glDrawArrays(GL_TRIANGLES, 0, leg.mesh_data.mPointCount);
@@ -229,7 +230,7 @@ void draw_spider(vec3 spider_color, vec3 initial_coords, vec3 lights_position[])
 
 	vec3 eye_color = vec3(0.63, 0.13, 0.94);
 	mat4 eyeArray[7 * sizeof(mat4)];
-	vec3 eye_scaling_factor = vec3(0.2, 0.2, 0.2);
+	vec3 eye_scaling_factor = vec3(0.15, 0.15, 0.15);
 	glUseProgram(specularShaderProgramID);
 	bind_specular_shader_uniforms();
 	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
@@ -244,7 +245,10 @@ void draw_spider(vec3 spider_color, vec3 initial_coords, vec3 lights_position[])
 	for (int i = 0; i < 7; i++) {
 		eyeArray[i] = identity_mat4();
 		eyeArray[i] = scale(eyeArray[i], eye_scaling_factor);
-		eyeArray[i] = translate(eyeArray[i], vec3(0, 0.3, 2.9));
+		if(i<4)
+			eyeArray[i] = translate(eyeArray[i], vec3(i*0.25 - 0.4, 0.3, 2.9));
+		else
+			eyeArray[i] = translate(eyeArray[i], vec3(i * 0.25 - 1.25, 0.45, 2.9));
 		eyeArray[i] = spider_matrix * eyeArray[i];
 		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, eyeArray[i].m);
 		glDrawArrays(GL_TRIANGLES, 0, specular_eye_model.mesh_data.mPointCount);
