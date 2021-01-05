@@ -19,10 +19,11 @@
 #include "Camera.h"
 #include "Object.h"
 
-#define SPIDER_MESH_NAME "spider.dae"
+#define SPIDER_MESH_NAME "spider_no_eyes.dae"
 #define LEG_MESH_NAME "leg.dae"
 #define TILE_MESH_NAME "tile.dae"
 #define CUBE_MESH_NAME "cube.dae"
+#define EYE_MESH_NAME "eye.dae"
 
 using namespace std;
 
@@ -30,6 +31,7 @@ int width = 800;
 int height = 600;
 
 Model specular_spider_model = Model(SPIDER_MESH_NAME);
+Model specular_eye_model = Model(EYE_MESH_NAME);
 
 Model leg = Model(LEG_MESH_NAME);
 Model tile = Model(TILE_MESH_NAME);
@@ -69,9 +71,9 @@ GLfloat rotate_z = 0.0f;
 GLfloat translate_x = 0.0f;
 GLfloat translate_y = 0.0f;
 GLfloat translate_z = 0.0f;
-GLfloat scale_x = 0.1f;
-GLfloat scale_y = 0.1f;
-GLfloat scale_z = 0.1f;
+GLfloat scale_x = 1.0f;
+GLfloat scale_y = 1.0f;
+GLfloat scale_z = 1.0f;
 
 GLfloat leg_set_1_rotate_x = 0.0f;
 boolean leg_set_1_rotate_x_increasing = true;
@@ -85,12 +87,9 @@ boolean mouseInput = false;
 int matrix_location;
 int view_mat_location;
 int proj_mat_location;
-
 int object_color_location;
-
 int view_pos_location;
 int specular_coef_location;
-
 int lights_position_location;
 
 mat4 view;
@@ -109,6 +108,7 @@ void init()
 	specular_spider_model.generateVAO(specularShaderProgramID, "");
 	leg.generateVAO(textureShaderProgramID, "hair_texture.jpg");
 	tile.generateVAO(diffuseShaderProgramID, "");
+	specular_eye_model.generateVAO(specularShaderProgramID, "");
 	specular_box.generateVAO(specularShaderProgramID, "");
 
 	textured_box_objects[0].model->generateVAO(textureShaderProgramID, "hair_texture.jpg");
@@ -144,7 +144,6 @@ void bind_specular_shader_uniforms() {
 }
 
 void draw_spider(vec3 spider_color, vec3 initial_coords, vec3 lights_position[]) {
-	mat4 identity_matrix = identity_mat4();
 
 	mat4 spider_matrix = identity_mat4();
 	spider_matrix = scale(spider_matrix, vec3(scale_x, scale_y, scale_z));
@@ -154,7 +153,6 @@ void draw_spider(vec3 spider_color, vec3 initial_coords, vec3 lights_position[])
 	spider_matrix = rotate_z_deg(spider_matrix, rotate_z);
 	spider_matrix = translate(spider_matrix, initial_coords);
 	spider_matrix = translate(spider_matrix, vec3(translate_x, translate_y, translate_z));
-
 
 	// Activate the specular shader program and locate the uniforms
 	glUseProgram(specularShaderProgramID);
@@ -169,6 +167,8 @@ void draw_spider(vec3 spider_color, vec3 initial_coords, vec3 lights_position[])
 	glUniform3fv(lights_position_location, 2, (GLfloat*)lights_position);
 	glBindVertexArray(specular_spider_model.vao);
 	glDrawArrays(GL_TRIANGLES, 0, specular_spider_model.mesh_data.mPointCount);
+
+	mat4 identity_matrix = identity_mat4();
 
 	// Update the matrix for each leg model
 	mat4 legArray[8 * sizeof(mat4)];
@@ -226,6 +226,30 @@ void draw_spider(vec3 spider_color, vec3 initial_coords, vec3 lights_position[])
 		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, legArray[i].m);
 		glDrawArrays(GL_TRIANGLES, 0, leg.mesh_data.mPointCount);
 	}
+
+	vec3 eye_color = vec3(0.63, 0.13, 0.94);
+	mat4 eyeArray[7 * sizeof(mat4)];
+	vec3 eye_scaling_factor = vec3(0.2, 0.2, 0.2);
+	glUseProgram(specularShaderProgramID);
+	bind_specular_shader_uniforms();
+	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
+	glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
+
+	glUniform3fv(object_color_location, 1, (GLfloat*)&eye_color);
+	glUniform3fv(view_pos_location, 1, (GLfloat*)&camera.position);
+	glUniform1f(specular_coef_location, 1);
+	glUniform3fv(lights_position_location, 2, (GLfloat*)lights_position);
+	glBindVertexArray(specular_eye_model.vao);
+
+	for (int i = 0; i < 7; i++) {
+		eyeArray[i] = identity_mat4();
+		eyeArray[i] = scale(eyeArray[i], eye_scaling_factor);
+		eyeArray[i] = translate(eyeArray[i], vec3(0, 0.3, 2.9));
+		eyeArray[i] = spider_matrix * eyeArray[i];
+		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, eyeArray[i].m);
+		glDrawArrays(GL_TRIANGLES, 0, specular_eye_model.mesh_data.mPointCount);
+	}
+
 }
 
 void draw_static_scene() {
@@ -243,7 +267,6 @@ void draw_static_scene() {
 		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, textured_box_objects[i].matrix.m);
 		glDrawArrays(GL_TRIANGLES, 0, textured_box_objects[i].model->mesh_data.mPointCount);
 	}
-
 }
 
 void display() {
