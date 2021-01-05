@@ -1,40 +1,29 @@
-// Windows includes (For Time, IO, etc.)
 #include <windows.h>
 #include <mmsystem.h>
 #include <iostream>
 #include <string>
 #include <stdio.h>
 #include <math.h>
-#include <vector> // STL dynamic memory.
+#include <vector>
 
-// OpenGL includes
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 
-// Assimp includes
-#include <assimp/cimport.h> // scene importer
-#include <assimp/scene.h> // collects data
-#include <assimp/postprocess.h> // various extra operations
+#include <assimp/cimport.h> 
+#include <assimp/scene.h> 
+#include <assimp/postprocess.h> 
 
-// Project includes
 #include "maths_funcs.h"
 #include "Model.h"
 #include "Shaders.h"
 #include "Camera.h"
 #include "Object.h"
 
-/*----------------------------------------------------------------------------
-MESH TO LOAD
-----------------------------------------------------------------------------*/
-// this mesh is a dae file format but you should be able to use any other format too, obj is typically what is used
-// put the mesh in your project directory, or provide a filepath for it here
 #define SPIDER_MESH_NAME "spider.dae"
 #define LEG_MESH_NAME "leg.dae"
 #define TILE_MESH_NAME "tile.dae"
 #define CUBE_MESH_NAME "cube.dae"
 
-/*----------------------------------------------------------------------------
-----------------------------------------------------------------------------*/
 using namespace std;
 
 int width = 800;
@@ -154,9 +143,7 @@ void bind_specular_shader_uniforms() {
 	lights_position_location = glGetUniformLocation(specularShaderProgramID, "lights_position");
 }
 
-//enum shader_types {AMBIENT, DIFFUSE, SPECULAR, TEXTURE};
 void draw_spider(vec3 spider_color, vec3 initial_coords, vec3 lights_position[]) {
-	// Update the root of the hierarchical spider model
 	mat4 identity_matrix = identity_mat4();
 
 	mat4 spider_matrix = identity_mat4();
@@ -173,19 +160,15 @@ void draw_spider(vec3 spider_color, vec3 initial_coords, vec3 lights_position[])
 	glUseProgram(specularShaderProgramID);
 	bind_specular_shader_uniforms();
 
-	// Update the specular uniforms and draw the spider
 	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
 	glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
 	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, spider_matrix.m);
 	glUniform3fv(object_color_location, 1, (GLfloat*)&spider_color);
 	glUniform3fv(view_pos_location, 1, (GLfloat*)&camera.position);
 	glUniform1f(specular_coef_location, 1);
-
 	glUniform3fv(lights_position_location, 2, (GLfloat*)lights_position);
-
 	glBindVertexArray(specular_spider_model.vao);
 	glDrawArrays(GL_TRIANGLES, 0, specular_spider_model.mesh_data.mPointCount);
-
 
 	// Update the matrix for each leg model
 	mat4 legArray[8 * sizeof(mat4)];
@@ -264,9 +247,8 @@ void draw_static_scene() {
 }
 
 void display() {
-	// tell GL to only draw onto a pixel if the shape is closer to the viewer
-	glEnable(GL_DEPTH_TEST); // enable depth-testing
-	glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
 	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -280,13 +262,11 @@ void display() {
 	};
 
 	persp_proj = perspective(perspective_fovy, (float)width / (float)height, 0.1f, 1000.0f);
-	// Update the camera
 	view = look_at(
 		camera.position,
 		camera.position + camera.direction,
 		camera.up
 	);
-
 
 	draw_static_scene();
 
@@ -296,8 +276,6 @@ void display() {
 
 	glUseProgram(specularShaderProgramID);
 	bind_specular_shader_uniforms();
-
-
 
 	// draw lights
 	for (int i = 0; i < 2; i++) {
@@ -328,7 +306,6 @@ void display() {
 	glUseProgram(diffuseShaderProgramID);
 	bind_diffuse_shader_uniforms();
 
-	
 	// Update the diffuse uniforms and draw the floor
 	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
 	glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
@@ -372,7 +349,6 @@ void updateScene() {
 		translate_z -= 0.001;
 		translate_x = sin(translate_z)/2;
 	}
-	// Draw the next frame
 	glutPostRedisplay();
 }
 
@@ -439,29 +415,22 @@ void keypress(unsigned char key, int x, int y) {
 
 
 int main(int argc, char** argv) {
-
-	// Set up the window
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
 	glutInitWindowSize(width, height);
 	glutCreateWindow("Spooky Spider");
 
-	// Tell glut where the display function is
 	glutDisplayFunc(display);
 	glutIdleFunc(updateScene);
 	glutKeyboardFunc(keypress);
 	glutPassiveMotionFunc(mouseMoved);
 
-	// A call to glewInit() must be done after glut is initialized!
 	GLenum res = glewInit();
-	// Check for any errors
 	if (res != GLEW_OK) {
 		fprintf(stderr, "Error: '%s'\n", glewGetErrorString(res));
 		return 1;
 	}
-	// Set up your objects and shaders
 	init();
-	// Begin infinite event loop
 	glutMainLoop();
 	return 0;
 }
