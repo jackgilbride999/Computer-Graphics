@@ -18,6 +18,7 @@
 #include "Shaders.h"
 #include "Camera.h"
 #include "Object.h"
+#include "Spider.h"
 
 #define SPIDER_MESH_NAME "spider_no_eyes.dae"
 #define LEG_MESH_NAME "leg.dae"
@@ -56,6 +57,8 @@ Object textured_box_objects[] = {
 	Object(&box4),
 	Object(&box5),
 };
+
+Spider spider1 = Spider(&specular_spider_model, &leg, &specular_eye_model);
 
 Camera camera = Camera(vec3(0.0f, 1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f));
 
@@ -374,7 +377,7 @@ void updateScene() {
 		update_leg_rotation(leg_set_1_rotate_x, leg_set_1_rotate_x_increasing, delta);
 		update_leg_rotation(leg_set_2_rotate_x, leg_set_2_rotate_x_increasing, delta);
 		translate_z -= 0.001;
-		translate_x = sin(translate_z)/2;
+		translate_x = sin(translate_z)/5;
 	}
 	glutPostRedisplay();
 }

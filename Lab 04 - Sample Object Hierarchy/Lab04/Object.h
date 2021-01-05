@@ -21,5 +21,6 @@ public:
 	mat4 matrix;
 	Model* model;
 	Object(Model * model);
+	Object();
 };
 
