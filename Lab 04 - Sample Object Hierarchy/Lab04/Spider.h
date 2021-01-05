@@ -17,10 +17,12 @@ public:
 	void rotate_hierarchy_x_deg(float deg);
 	void rotate_hierarchy_y_deg(float deg);
 	void rotate_hierarchy_z_deg(float deg);
+	void update_leg_rotation(float delta);
 
 
 private:
 	void update_hierarchy();
+	void update_leg_set(GLfloat& leg_rotation, boolean& increasing, float delta);
 	vec3 leg_scaling_factor = vec3(0.6, 0.6, 0.6);
 	vec3 eye_scaling_factor = vec3(0.15, 0.15, 0.15);
 	GLfloat leg_set_1_rotate_x = 0.0f;

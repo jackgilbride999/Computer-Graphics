@@ -45,6 +45,26 @@ void Spider::rotate_hierarchy_z_deg(float deg) {
 	update_hierarchy();
 }
 
+void Spider::update_leg_rotation(float delta) {
+	update_leg_set(leg_set_1_rotate_x, leg_set_1_rotate_x_increasing, delta);
+	update_leg_set(leg_set_2_rotate_x, leg_set_2_rotate_x_increasing, delta);
+}
+
+void Spider::update_leg_set(GLfloat &leg_rotation, boolean &increasing, float delta) {
+	if (increasing) {
+		leg_rotation += (20.0f * delta);
+		if (leg_rotation > 10.0f) {
+			increasing = false;
+		}
+	}
+	else {
+		leg_rotation -= (20.0f * delta);
+		if (leg_rotation < -10.0f) {
+			increasing = true;
+		}
+	}
+}
+
 void Spider::update_hierarchy() {
 
 	for (int i = 0; i < 8; i++) {
@@ -53,6 +73,18 @@ void Spider::update_hierarchy() {
 			this->legs[i].matrix = rotate_y_deg(this->legs[i].matrix, 180);
 		}
 	}
+	this->legs[0].matrix = rotate_x_deg(this->legs[0].matrix, leg_set_1_rotate_x);
+	this->legs[3].matrix = rotate_x_deg(this->legs[3].matrix, leg_set_1_rotate_x);
+	this->legs[4].matrix = rotate_x_deg(this->legs[4].matrix, leg_set_1_rotate_x);
+	this->legs[7].matrix = rotate_x_deg(this->legs[7].matrix, leg_set_1_rotate_x);
+
+	this->legs[1].matrix = rotate_x_deg(this->legs[1].matrix, leg_set_2_rotate_x);
+	this->legs[2].matrix = rotate_x_deg(this->legs[2].matrix, leg_set_2_rotate_x);
+	this->legs[5].matrix = rotate_x_deg(this->legs[5].matrix, leg_set_2_rotate_x);
+	this->legs[6].matrix = rotate_x_deg(this->legs[6].matrix, leg_set_2_rotate_x);
+
+
+
 	this->legs[0].matrix = translate(this->legs[0].matrix, vec3(0.0f, 0.0f, -1.5f));
 	this->legs[1].matrix = translate(this->legs[1].matrix, vec3(0.0f, 0.0f, -1.5f));
 

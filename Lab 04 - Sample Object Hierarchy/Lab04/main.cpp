@@ -261,20 +261,6 @@ void display() {
 	glutSwapBuffers();
 }
 
-void update_leg_rotation(GLfloat &leg_rotation, boolean &increasing, float delta) {
-	if (increasing) {
-		leg_rotation += (20.0f * delta);
-		if (leg_rotation > 10.0f) {
-			increasing = false;
-		}
-	}
-	else {
-		leg_rotation -= (20.0f * delta);
-		if (leg_rotation < -10.0f) {
-			increasing = true;
-		}
-	}
-}
 
 void updateScene() {
 	static DWORD last_time = 0;
@@ -285,10 +271,8 @@ void updateScene() {
 	last_time = curr_time;
 
 	if (animation) {
-		update_leg_rotation(leg_set_1_rotate_x, leg_set_1_rotate_x_increasing, delta);
-		update_leg_rotation(leg_set_2_rotate_x, leg_set_2_rotate_x_increasing, delta);
 		spider1.translate_hierarchy(vec3(0, 0, -0.001));
-
+		spider1.update_leg_rotation(delta);
 	}
 	glutPostRedisplay();
 }
