@@ -203,111 +203,6 @@ void draw_spider(Spider spider) {
 
 }
 
-void draw_spider(vec3 spider_color, vec3 initial_coords) {
-
-	mat4 spider_matrix = identity_mat4();
-	spider_matrix = scale(spider_matrix, vec3(scale_x, scale_y, scale_z));
-	spider_matrix = rotate_x_deg(spider_matrix, rotate_x);
-	spider_matrix = rotate_y_deg(spider_matrix, 180);
-	spider_matrix = rotate_y_deg(spider_matrix, rotate_y);
-	spider_matrix = rotate_z_deg(spider_matrix, rotate_z);
-	spider_matrix = translate(spider_matrix, initial_coords);
-	spider_matrix = translate(spider_matrix, vec3(translate_x, translate_y, translate_z));
-
-	// Activate the specular shader program and locate the uniforms
-	activate_specular_shader();
-
-
-	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, spider_matrix.m);
-	glUniform3fv(object_color_location, 1, (GLfloat*)&spider_color);
-	glUniform3fv(view_pos_location, 1, (GLfloat*)&camera.position);
-	glUniform1f(specular_coef_location, 1);
-	glUniform3fv(lights_position_location, 2, (GLfloat*)lights_position);
-	glBindVertexArray(specular_spider_model.vao);
-	glDrawArrays(GL_TRIANGLES, 0, specular_spider_model.mesh_data.mPointCount);
-
-	mat4 identity_matrix = identity_mat4();
-
-	// Update the matrix for each leg model
-	mat4 legArray[8 * sizeof(mat4)];
-	vec3 leg_scaling_factor = vec3(0.6, 0.6, 0.6);
-
-	legArray[0] = scale(identity_matrix, leg_scaling_factor);
-	legArray[0] = rotate_x_deg(legArray[0], leg_set_1_rotate_x);
-	legArray[0] = translate(legArray[0], vec3(0.0f, 0.0f, -1.5f));
-
-	legArray[1] = scale(identity_matrix, leg_scaling_factor);
-	legArray[1] = rotate_y_deg(legArray[1], 180);
-	legArray[1] = rotate_x_deg(legArray[1], leg_set_2_rotate_x);
-	legArray[1] = translate(legArray[1], vec3(0.0f, 0.0f, -1.5f));
-
-	legArray[2] = scale(identity_matrix, leg_scaling_factor);
-	legArray[2] = rotate_x_deg(legArray[2], leg_set_2_rotate_x);
-	legArray[2] = translate(legArray[2], vec3(0.0f, 0.0f, -0.667f));
-
-	legArray[3] = scale(identity_matrix, leg_scaling_factor);
-	legArray[3] = rotate_y_deg(legArray[3], 180);
-	legArray[3] = rotate_x_deg(legArray[3], leg_set_1_rotate_x);
-	legArray[3] = translate(legArray[3], vec3(0.0f, 0.0f, -0.667f));
-
-	legArray[4] = scale(identity_matrix, leg_scaling_factor);
-	legArray[4] = rotate_x_deg(legArray[4], leg_set_1_rotate_x);
-	legArray[4] = translate(legArray[4], vec3(0.0f, 0.0f, 0.167f));
-
-	legArray[5] = scale(identity_matrix, leg_scaling_factor);
-	legArray[5] = rotate_y_deg(legArray[5], 180);
-	legArray[5] = rotate_x_deg(legArray[5], leg_set_2_rotate_x);
-	legArray[5] = translate(legArray[5], vec3(0.0f, 0.0f, 0.167f));
-
-	legArray[6] = scale(identity_matrix, leg_scaling_factor);
-	legArray[6] = rotate_x_deg(legArray[6], leg_set_2_rotate_x);
-	legArray[6] = translate(legArray[6], vec3(0.0f, 0.0f, 1.0f));
-
-	legArray[7] = scale(identity_matrix, leg_scaling_factor);
-	legArray[7] = rotate_y_deg(legArray[7], 180);
-	legArray[7] = rotate_x_deg(legArray[7], leg_set_1_rotate_x);
-	legArray[7] = translate(legArray[7], vec3(0.0f, 0.0f, 1.0f));
-
-	// Activate the texture shader program and locate the uniforms
-	activate_texture_shader();
-
-
-	glBindTexture(GL_TEXTURE_2D, leg.texture);
-	glBindVertexArray(leg.vao);
-
-	for (int i = 0; i < 8; i++) {
-		legArray[i] = scale(legArray[i], leg_scaling_factor);
-		legArray[i] = spider_matrix * legArray[i];
-		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, legArray[i].m);
-		glDrawArrays(GL_TRIANGLES, 0, leg.mesh_data.mPointCount);
-	}
-
-	vec3 eye_color = vec3(0.63, 0.13, 0.94);
-	mat4 eyeArray[7 * sizeof(mat4)];
-	vec3 eye_scaling_factor = vec3(0.15, 0.15, 0.15);
-	activate_specular_shader();
-
-
-	glUniform3fv(object_color_location, 1, (GLfloat*)&eye_color);
-	glUniform3fv(view_pos_location, 1, (GLfloat*)&camera.position);
-	glUniform1f(specular_coef_location, 1);
-	glUniform3fv(lights_position_location, 2, (GLfloat*)lights_position);
-	glBindVertexArray(specular_eye_model.vao);
-
-	for (int i = 0; i < 7; i++) {
-		eyeArray[i] = identity_mat4();
-		eyeArray[i] = scale(eyeArray[i], eye_scaling_factor);
-		if(i<4)
-			eyeArray[i] = translate(eyeArray[i], vec3(i*0.25 - 0.4, 0.3, 2.9));
-		else
-			eyeArray[i] = translate(eyeArray[i], vec3(i * 0.25 - 1.25, 0.45, 2.9));
-		eyeArray[i] = spider_matrix * eyeArray[i];
-		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, eyeArray[i].m);
-		glDrawArrays(GL_TRIANGLES, 0, specular_eye_model.mesh_data.mPointCount);
-	}
-
-}
-
 void draw_static_scene() {
 	// set up uniforms for static textured objects:
 	activate_texture_shader();
@@ -342,10 +237,6 @@ void display() {
 	);
 
 	draw_static_scene();
-
-	draw_spider(vec3(1, 0, 0), vec3(-1.0f, 0.5f, 20.0f));
-	draw_spider(vec3(0, 1, 0), vec3(0.0f, 0.5f, 25.0f));
-	draw_spider(vec3(0, 0, 1), vec3(1.0f, 0.5f, 20.0f));
 
 	draw_spider(spider1);
 
