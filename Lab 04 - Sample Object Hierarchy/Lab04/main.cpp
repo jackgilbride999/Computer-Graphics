@@ -204,10 +204,8 @@ void draw_spider(Spider spider) {
 }
 
 void draw_static_scene() {
-	// set up uniforms for static textured objects:
+	// draw boxes
 	activate_texture_shader();
-
-
 	for (int i = 0; i < 5; i++) {
 		textured_box_objects[i].matrix = scale(identity_mat4(), vec3(0.2, 0.2, 0.2));
 		textured_box_objects[i].matrix = translate(textured_box_objects[i].matrix, vec3(i, 0.5, 20));
@@ -215,6 +213,32 @@ void draw_static_scene() {
 		glBindVertexArray(textured_box_objects[i].model->vao);
 		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, textured_box_objects[i].matrix.m);
 		glDrawArrays(GL_TRIANGLES, 0, textured_box_objects[i].model->mesh_data.mPointCount);
+	}
+
+	//draw floor
+	vec3 floor_color = vec3(1, 1, 1);
+	mat4 floor_matrix = identity_mat4();
+	floor_matrix = scale(floor_matrix, vec3(100.0f, 1.0f, 100.0f));
+	activate_diffuse_shader();
+	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, floor_matrix.m);
+	glUniform3fv(object_color_location, 1, (GLfloat*)&floor_color);
+	glUniform3fv(lights_position_location, 2, (GLfloat*)&lights_position);
+	glBindVertexArray(tile.vao);
+	glDrawArrays(GL_TRIANGLES, 0, tile.mesh_data.mPointCount);
+
+	// draw lights
+	activate_specular_shader();
+	for (int i = 0; i < 2; i++) {
+		mat4 light_matrix = identity_mat4();
+		light_matrix = scale(light_matrix, vec3(0.1, 0.1, 0.1));
+		light_matrix = translate(light_matrix, lights_position[i]);
+		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, light_matrix.m);
+		glUniform3fv(object_color_location, 1, (GLfloat*)&vec3(1, 1, 1));
+		glUniform3fv(view_pos_location, 1, (GLfloat*)&camera.position);
+		glUniform1f(specular_coef_location, 200);
+		glUniform3fv(lights_position_location, 2, (GLfloat*)&lights_position);
+		glBindVertexArray(specular_box.vao);
+		glDrawArrays(GL_TRIANGLES, 0, specular_box.mesh_data.mPointCount);
 	}
 }
 
@@ -224,11 +248,6 @@ void display() {
 	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	// Object colors
-	vec3 leg_color = vec3(0.5, 0.5, 0.5);
-	vec3 floor_color = vec3(1, 1, 1);
-
-
 	persp_proj = perspective(perspective_fovy, (float)width / (float)height, 0.1f, 1000.0f);
 	view = look_at(
 		camera.position,
@@ -237,45 +256,7 @@ void display() {
 	);
 
 	draw_static_scene();
-
 	draw_spider(spider1);
-
-	activate_specular_shader();
-
-	// draw lights
-	for (int i = 0; i < 2; i++) {
-		mat4 light_matrix = identity_mat4();
-		light_matrix = scale(light_matrix, vec3(0.1, 0.1, 0.1));
-		light_matrix = translate(light_matrix, lights_position[i]);
-		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, light_matrix.m);
-
-
-
-		glUniform3fv(object_color_location, 1, (GLfloat*)&vec3(1, 1, 1));
-		glUniform3fv(view_pos_location, 1, (GLfloat*)&camera.position);
-		glUniform1f(specular_coef_location, 200);
-
-		glUniform3fv(lights_position_location, 2, (GLfloat*)&lights_position);
-
-
-		glBindVertexArray(specular_box.vao);
-		glDrawArrays(GL_TRIANGLES, 0, specular_box.mesh_data.mPointCount);
-	}
-	
-	// Update the matrix for the floor model
-	mat4 floor_matrix = identity_mat4();
-	floor_matrix = scale(floor_matrix, vec3(100.0f, 1.0f, 100.0f));
-
-	// Activate the diffuse shader program and locate the uniforms
-	activate_diffuse_shader();
-
-	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, floor_matrix.m);
-	glUniform3fv(object_color_location, 1, (GLfloat*)&floor_color);
-
-	glUniform3fv(lights_position_location, 2, (GLfloat*)&lights_position);
-
-	glBindVertexArray(tile.vao);
-	glDrawArrays(GL_TRIANGLES, 0, tile.mesh_data.mPointCount);
 
 	glutSwapBuffers();
 }
