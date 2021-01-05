@@ -5,27 +5,22 @@
 #include <stdio.h>
 #include <math.h>
 #include <vector>
-
 #include <GL/glew.h>
 #include <GL/freeglut.h>
-
 #include <assimp/cimport.h> 
 #include <assimp/scene.h> 
 #include <assimp/postprocess.h> 
-
 #include "maths_funcs.h"
 #include "Model.h"
 #include "Shaders.h"
 #include "Camera.h"
 #include "Object.h"
 #include "Spider.h"
-
 #define SPIDER_MESH_NAME "spider_no_eyes.dae"
 #define LEG_MESH_NAME "leg.dae"
 #define TILE_MESH_NAME "tile.dae"
 #define CUBE_MESH_NAME "cube.dae"
 #define EYE_MESH_NAME "eye.dae"
-
 using namespace std;
 
 int width = 800;
@@ -44,11 +39,11 @@ Model box3(CUBE_MESH_NAME);
 Model box4(CUBE_MESH_NAME);
 Model box5(CUBE_MESH_NAME);
 
-Object spider_objects[] = {
-	Object(&specular_spider_model, vec3(1,0,0)),
-	Object(&specular_spider_model, vec3(0,1,0)),
-	Object(&specular_spider_model, vec3(0,0,1))
-};
+Model box6(CUBE_MESH_NAME);
+Model box7(CUBE_MESH_NAME);
+Model box8(CUBE_MESH_NAME);
+Model box9(CUBE_MESH_NAME);
+Model box10(CUBE_MESH_NAME);
 
 Object textured_box_objects[] = {
 	Object(&box1, vec3(0,0,0)),
@@ -56,14 +51,41 @@ Object textured_box_objects[] = {
 	Object(&box3, vec3(0,0,0)),
 	Object(&box4, vec3(0,0,0)),
 	Object(&box5, vec3(0,0,0)),
+	Object(&box6, vec3(0,0,0)),
+	Object(&box7, vec3(0,0,0)),
+	Object(&box8, vec3(0,0,0)),
+	Object(&box9, vec3(0,0,0)),
+	Object(&box10, vec3(0,0,0)),
+};
+
+Object floor_object = Object(&tile, vec3(1, 1, 1));
+Object ceiling_object = Object(&tile, vec3(0.2, 0.2, 0.2));
+Object walls[] = {
+	Object(&tile, vec3(1.0,1.0,1.0)),
+	Object(&tile, vec3(0.2,0.2,0.2)),
+	Object(&tile, vec3(0.2,0.2,0.2)),
+	Object(&tile, vec3(0.2,0.2,0.2))
 };
 
 vec3 lights_position[] = {
-	vec3(4, 1, 20),
-	vec3(-4, 1, 20)
+	vec3(4, 1, 0),
+	vec3(-4, 1, 0)
 };
 
-Spider spider1 = Spider(&specular_spider_model, &leg, &specular_eye_model, vec3(1,0,0), vec3(0,1,0), vec3(0,0,1));
+Object lights[] = {
+	Object(&specular_box, vec3(1,1,1)),
+	Object(&specular_box, vec3(1,1,1))
+};
+
+Spider specular_spiders[] = {
+	Spider(&specular_spider_model, &leg, &specular_eye_model, vec3(0.9,0.1,0.9), vec3(0,1,0), vec3(0.0, 0.0, 0.0)),
+	Spider(&specular_spider_model, &leg, &specular_eye_model, vec3(0.5,1.0,0.0), vec3(0,1,0), vec3(0.1,1.0,0.8)),
+	Spider(&specular_spider_model, &leg, &specular_eye_model, vec3(0.1,0.4,1.0), vec3(0,1,0), vec3(1.0,1.0,1.0)),
+	Spider(&specular_spider_model, &leg, &specular_eye_model, vec3(0.8,0.1,1.0), vec3(0,1,0), vec3(0.1,0.2,1.0)),
+	Spider(&specular_spider_model, &leg, &specular_eye_model, vec3(0.8,1.0,0.1), vec3(0,1,0), vec3(1.0,0.6,0.0)),
+	Spider(&specular_spider_model, &leg, &specular_eye_model, vec3(0.1,1.0,0.9), vec3(0,1,0), vec3(0.1,1.0,0.4))
+};
+
 
 Camera camera = Camera(vec3(0.0f, 1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f));
 
@@ -73,39 +95,14 @@ GLfloat scale_increment = 2.0f;
 
 GLfloat perspective_fovy = 45.0f;
 
-GLfloat rotate_x = 0.0f;
-GLfloat rotate_y = 0.0f;
-GLfloat rotate_z = 0.0f;
-GLfloat translate_x = 0.0f;
-GLfloat translate_y = 0.0f;
-GLfloat translate_z = 0.0f;
-GLfloat scale_x = 0.1f;
-GLfloat scale_y = 0.1f;
-GLfloat scale_z = 0.1f;
-
-GLfloat leg_set_1_rotate_x = 0.0f;
-boolean leg_set_1_rotate_x_increasing = true;
-
-GLfloat leg_set_2_rotate_x = 0.0f;
-boolean leg_set_2_rotate_x_increasing = false;
-
 boolean animation = true;
 boolean mouseInput = false;
 
-int matrix_location;
-int view_mat_location;
-int proj_mat_location;
-int object_color_location;
-int view_pos_location;
-int specular_coef_location;
-int lights_position_location;
-
-mat4 view;
-mat4 persp_proj;
-
-GLuint diffuseShaderProgramID;
-GLuint specularShaderProgramID;
-GLuint textureShaderProgramID;
+int matrix_location, view_mat_location, proj_mat_location;
+int object_color_location, lights_position_location;
+int view_pos_location, specular_coef_location;
+mat4 view, persp_proj;
+GLuint diffuseShaderProgramID, specularShaderProgramID, textureShaderProgramID;
 
 void init()
 {
@@ -125,11 +122,51 @@ void init()
 	textured_box_objects[2].model->generateVAO(textureShaderProgramID, "fur_texture.jpg");
 	textured_box_objects[3].model->generateVAO(textureShaderProgramID, "scratched_metal.jpg");
 	textured_box_objects[4].model->generateVAO(textureShaderProgramID, "spooky_wood.jpg");
+	textured_box_objects[5].model->generateVAO(textureShaderProgramID, "orange_webs.JPG");
+	textured_box_objects[6].model->generateVAO(textureShaderProgramID, "green.JPEG");
+	textured_box_objects[7].model->generateVAO(textureShaderProgramID, "white_webs.jpg");
+	textured_box_objects[8].model->generateVAO(textureShaderProgramID, "blood.jpg");
+	textured_box_objects[9].model->generateVAO(textureShaderProgramID, "smoke.jpg");
 
-	spider1.scale_hierarchy(vec3(0.1, 0.1, 0.1));
-	spider1.rotate_hierarchy_y_deg(180);
-	spider1.translate_hierarchy(vec3(-1.5, 0.5, 20));
+	for (int i = 0; i < 6; i++) {
+		specular_spiders[i].scale_hierarchy(vec3(0.1, 0.1, 0.1));
+		specular_spiders[i].rotate_hierarchy_y_deg(180);
+		specular_spiders[i].translate_hierarchy(vec3(-1.5 + i, 0.5, 15 + (i % 3)));
+	}
 
+	for (int i = 0; i < 10; i++) {
+		textured_box_objects[i].matrix = scale(identity_mat4(), vec3((i+1)*0.2, (i + 1) * 0.2, 0.5));
+		textured_box_objects[i].matrix = rotate_y_deg(textured_box_objects[i].matrix, 60);
+		if (i % 2) {
+			textured_box_objects[i].matrix = translate(textured_box_objects[i].matrix, vec3(2* -i, 0.5, 20 + i * 1.5));
+
+		}
+		else {
+			textured_box_objects[i].matrix = translate(textured_box_objects[i].matrix, vec3(2 * i, 0.5, 20 + i * 1.5));
+
+		}
+	}
+
+	floor_object.matrix = scale(identity_mat4(), vec3(100.0f, 1.0f, 100.0f));
+	ceiling_object.matrix = translate(floor_object.matrix, vec3(0.0f, 10.0f, 0.0f));
+
+	walls[0].matrix = scale(identity_mat4(), vec3(200, 1.0f, 50.0f));
+	walls[0].matrix = rotate_x_deg(walls[0].matrix, 90);
+	walls[0].matrix = translate(walls[0].matrix, vec3(0, 0, 150));
+
+	walls[1].matrix = translate(walls[0].matrix, vec3(0, 0, -300));
+
+	walls[2].matrix = scale(identity_mat4(), vec3(200.0f, 1.0f, 50.0f));
+	walls[2].matrix = rotate_x_deg(walls[2].matrix, 90);
+	walls[2].matrix = rotate_y_deg(walls[2].matrix, 90);
+	walls[2].matrix = translate(walls[2].matrix, vec3(150, 0, 0));
+	walls[3].matrix = translate(walls[2].matrix, vec3(-300, 0, 0));
+
+
+	lights[0].matrix = scale(identity_mat4(), vec3(0.1, 0.1, 0.1));
+	lights[0].matrix = translate(lights[0].matrix, lights_position[0]);
+	lights[1].matrix = scale(identity_mat4(), vec3(0.1, 0.1, 0.1));
+	lights[1].matrix = translate(lights[1].matrix, lights_position[1]);
 }
 
 void activate_texture_shader() {
@@ -176,7 +213,7 @@ void draw_spider(Spider spider) {
 	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, spider.body.matrix.m);
 	glUniform3fv(object_color_location, 1, (GLfloat*)&spider.body_color);
 	glUniform3fv(view_pos_location, 1, (GLfloat*)&camera.position);
-	glUniform1f(specular_coef_location, 1);
+	glUniform1f(specular_coef_location, 0.5);
 	glUniform3fv(lights_position_location, 2, (GLfloat*)lights_position);
 	glBindVertexArray(spider.body.model->vao);
 	glDrawArrays(GL_TRIANGLES, 0, spider.body.model->mesh_data.mPointCount);
@@ -206,9 +243,7 @@ void draw_spider(Spider spider) {
 void draw_static_scene() {
 	// draw boxes
 	activate_texture_shader();
-	for (int i = 0; i < 5; i++) {
-		textured_box_objects[i].matrix = scale(identity_mat4(), vec3(0.2, 0.2, 0.2));
-		textured_box_objects[i].matrix = translate(textured_box_objects[i].matrix, vec3(i, 0.5, 20));
+	for (int i = 0; i < 10; i++) {
 		glBindTexture(GL_TEXTURE_2D, textured_box_objects[i].model->texture);
 		glBindVertexArray(textured_box_objects[i].model->vao);
 		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, textured_box_objects[i].matrix.m);
@@ -216,24 +251,32 @@ void draw_static_scene() {
 	}
 
 	//draw floor
-	vec3 floor_color = vec3(1, 1, 1);
-	mat4 floor_matrix = identity_mat4();
-	floor_matrix = scale(floor_matrix, vec3(100.0f, 1.0f, 100.0f));
 	activate_diffuse_shader();
-	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, floor_matrix.m);
-	glUniform3fv(object_color_location, 1, (GLfloat*)&floor_color);
+	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, floor_object.matrix.m);
+	glUniform3fv(object_color_location, 1, (GLfloat*)&floor_object.color);
 	glUniform3fv(lights_position_location, 2, (GLfloat*)&lights_position);
-	glBindVertexArray(tile.vao);
-	glDrawArrays(GL_TRIANGLES, 0, tile.mesh_data.mPointCount);
+	glBindVertexArray(floor_object.model->vao);
+	glDrawArrays(GL_TRIANGLES, 0, floor_object.model->mesh_data.mPointCount);
+
+	glUniformMatrix4fv(matrix_location, 1, GL_FALSE, ceiling_object.matrix.m);
+	glUniform3fv(object_color_location, 1, (GLfloat*)&ceiling_object.color);
+	glUniform3fv(lights_position_location, 2, (GLfloat*)&lights_position);
+	glBindVertexArray(ceiling_object.model->vao);
+	glDrawArrays(GL_TRIANGLES, 0, ceiling_object.model->mesh_data.mPointCount);
+
+	for (int i = 0; i < 4; i++) {
+		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, walls[i].matrix.m);
+		glUniform3fv(object_color_location, 1, (GLfloat*)&walls[i].color);
+		glUniform3fv(lights_position_location, 2, (GLfloat*)&lights_position);
+		glBindVertexArray(walls[i].model->vao);
+		glDrawArrays(GL_TRIANGLES, 0, walls[i].model->mesh_data.mPointCount);
+	}
 
 	// draw lights
 	activate_specular_shader();
 	for (int i = 0; i < 2; i++) {
-		mat4 light_matrix = identity_mat4();
-		light_matrix = scale(light_matrix, vec3(0.1, 0.1, 0.1));
-		light_matrix = translate(light_matrix, lights_position[i]);
-		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, light_matrix.m);
-		glUniform3fv(object_color_location, 1, (GLfloat*)&vec3(1, 1, 1));
+		glUniformMatrix4fv(matrix_location, 1, GL_FALSE, lights[i].matrix.m);
+		glUniform3fv(object_color_location, 1, (GLfloat*)&lights[i].color);
 		glUniform3fv(view_pos_location, 1, (GLfloat*)&camera.position);
 		glUniform1f(specular_coef_location, 200);
 		glUniform3fv(lights_position_location, 2, (GLfloat*)&lights_position);
@@ -245,7 +288,7 @@ void draw_static_scene() {
 void display() {
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
-	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	persp_proj = perspective(perspective_fovy, (float)width / (float)height, 0.1f, 1000.0f);
@@ -256,7 +299,10 @@ void display() {
 	);
 
 	draw_static_scene();
-	draw_spider(spider1);
+	for(int i = 0; i < 6; i++){
+		draw_spider(specular_spiders[i]);
+	}
+		
 
 	glutSwapBuffers();
 }
@@ -271,8 +317,12 @@ void updateScene() {
 	last_time = curr_time;
 
 	if (animation) {
-		spider1.translate_hierarchy(vec3(0, 0, -0.001));
-		spider1.update_leg_rotation(delta);
+
+
+		for (int i = 0; i < 6; i++) {
+			specular_spiders[i].move(delta);
+			specular_spiders[i].update_leg_rotation(delta);
+		}
 	}
 	glutPostRedisplay();
 }

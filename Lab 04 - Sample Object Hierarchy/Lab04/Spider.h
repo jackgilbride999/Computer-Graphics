@@ -18,6 +18,7 @@ public:
 	void rotate_hierarchy_y_deg(float deg);
 	void rotate_hierarchy_z_deg(float deg);
 	void update_leg_rotation(float delta);
+	void move(float delta);
 
 
 private:
@@ -29,6 +30,7 @@ private:
 	boolean leg_set_1_rotate_x_increasing = true;
 	GLfloat leg_set_2_rotate_x = 0.0f;
 	boolean leg_set_2_rotate_x_increasing = false;
+	float z = rand();
 
 };
 
